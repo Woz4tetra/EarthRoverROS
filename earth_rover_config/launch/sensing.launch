@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <group ns="stereo_camera">
+        <node name="zed_camera_static_tf" pkg="tf" type="static_transform_publisher" args="0 0 0 -1.5707963267948966 0 -1.5707963267948966 camera_link zed_camera_center"></node>
+        <include file="$(find rtabmap_ros)/rtabmap.launch">
+            <arg name="rtabmap_args" value="--delete_db_on_start --Vis/CorFlowMaxLevel 5 --Stereo/MaxDisparity 200" />
+            <arg name="right_image_topic" value="/stereo_camera/right/image_rect_color" />
+            <arg name="stereo" value="true" />
+        </include>
+    </group>
+
+</launch>
