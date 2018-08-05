@@ -1,0 +1,13 @@
+<launch>
+    <!-- <include file="$(find zed_wrapper)/launch/display.launch"/> -->
+
+    <include file="$(find zed_wrapper)/launch/zed.launch">
+        <!-- <arg name="publish_tf" value="true" /> -->
+        <arg name="camera_model" value="0"/>
+    </include>
+    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+
+    <node name="zed_rviz" pkg="rviz" type="rviz" args="-d $(find earth_rover_config)/rviz/sensors.rviz" output="screen" required="true"/>
+    <node name="rplidar_rviz" pkg="rviz" type="rviz" args="-d $(find rplidar_ros)/rviz/rplidar.rviz" required="true"/>
+
+</launch>

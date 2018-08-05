@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <node name="sensor_bag" pkg="rosbag" type="play" args="$(find earth_rover_config)/bags/2018-08-04-08-15-11.bag" output="screen"/>
+    
+</launch>
