@@ -1,10 +1,14 @@
 <launch>
     <!-- <include file="$(find zed_wrapper)/launch/display.launch"/> -->
 
-    <include file="$(find zed_wrapper)/launch/zed.launch">
-        <!-- <arg name="publish_tf" value="true" /> -->
+    <!-- <include file="$(find zed_wrapper)/launch/zed.launch">
         <arg name="camera_model" value="0"/>
-    </include>
+    </include> -->
+    <group ns="zed">
+        <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+            <!-- <arg name="publish_tf" value="false"/> -->
+        </include>
+    </group>
     <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
 
     <node name="zed_rviz" pkg="rviz" type="rviz" args="-d $(find earth_rover_config)/rviz/sensors.rviz" output="screen" required="true"/>
