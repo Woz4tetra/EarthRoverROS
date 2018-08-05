@@ -12,6 +12,6 @@
                 <arg name="stereo" value="true" />
             </include>
         </group>
-
+        
         <include file="$(find rplidar_ros)/launch/view_rplidar.launch"/>
 </launch>
