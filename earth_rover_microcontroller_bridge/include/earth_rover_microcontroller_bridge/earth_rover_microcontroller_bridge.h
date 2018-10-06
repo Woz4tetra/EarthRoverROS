@@ -37,10 +37,10 @@ private:
 
     // Wait for the packet header specified with a timeout
     bool waitForPacket(const string packet);
-    int64_t parseSegmentedInt64(string s);
 
     std_msgs::Int64 right_encoder_msg;
     std_msgs::Int64 left_encoder_msg;
+    void parseToken(string token);
     void parseEncoderMessage();
 
     void left_motor_command_callback(const std_msgs::Int8& motor_command);
@@ -57,7 +57,7 @@ public:
     static const string START_COMMAND;  // packet to send to the microcontroller to tell it to start
     static const string STOP_COMMAND;  // packet to send to the microcontroller to tell it to stop
     static const string MESSAGE_DELIMITER;
-    
+
     static const string ENCODER_MESSAGE_HEADER;
 
     static const size_t MOTOR_COMMAND_MESSAGE_LEN;

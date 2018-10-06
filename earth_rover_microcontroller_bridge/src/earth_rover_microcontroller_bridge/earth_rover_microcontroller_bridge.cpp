@@ -12,7 +12,7 @@ const string EarthRoverMicroControllerBridge::START_COMMAND = "g" + PACKET_END;
 const string EarthRoverMicroControllerBridge::STOP_COMMAND = "s" + PACKET_END;
 const string EarthRoverMicroControllerBridge::MESSAGE_DELIMITER = "\t";
 
-const string EarthRoverMicroControllerBridge::ENCODER_MESSAGE_HEADER = "e";
+const string EarthRoverMicroControllerBridge::ENCODER_MESSAGE_HEADER = "enc";
 
 const size_t EarthRoverMicroControllerBridge::MOTOR_COMMAND_MESSAGE_LEN = 7;
 
@@ -131,27 +131,43 @@ int EarthRoverMicroControllerBridge::run()
 
 void EarthRoverMicroControllerBridge::parseEncoderMessage()
 {
-    serial_buffer = serial_buffer.substr(ENCODER_MESSAGE_HEADER.size(), serial_buffer.size() - 1);
-    ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+    size_t start_index = ENCODER_MESSAGE_HEADER.size() + 1;
+    serial_buffer = serial_buffer.substr(start_index, serial_buffer.size() - start_index - 1);
 
-    size_t time_index = serial_buffer.find(MESSAGE_DELIMITER);
-    ROS_DEBUG("encoder arduino time: %s", serial_buffer.substr(1, time_index).c_str());
+    size_t pos = 0;
+    string token;
+    while ((pos = serial_buffer.find(MESSAGE_DELIMITER)) != string::npos)
+    {
+        token = serial_buffer.substr(0, pos);
+        if (token.size() == 0) {
+            break;
+        }
+        parseToken(token);
+        serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
+    }
 
-    switch (serial_buffer.at(0)) {
+    token = serial_buffer.substr(0, serial_buffer.length() - 1);
+    parseToken(token);
+}
+
+void EarthRoverMicroControllerBridge::parseToken(string token)
+{
+    switch (token.at(0)) {
+        case 't': ROS_DEBUG("earth rover arduino time: %s", token.substr(1).c_str()); break;
         case 'r':
-            right_encoder_msg.data = STR_TO_INT(serial_buffer.substr(time_index + 1));
+            right_encoder_msg.data = STR_TO_INT(token.substr(1));
             ROS_DEBUG("right_encoder_msg: %li", right_encoder_msg.data);
 
             right_encoder_pub.publish(right_encoder_msg);
             break;
         case 'l':
-            left_encoder_msg.data = STR_TO_INT(serial_buffer.substr(time_index + 1));
+            left_encoder_msg.data = STR_TO_INT(token.substr(1));
             ROS_DEBUG("left_encoder_msg: %li", left_encoder_msg.data);
 
             left_encoder_pub.publish(left_encoder_msg);
-            break;
+                break;
         default:
-            ROS_WARN("Invalid segment type! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
+            ROS_WARN("Invalid segment type for earth rover arduino bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
             break;
     }
 }

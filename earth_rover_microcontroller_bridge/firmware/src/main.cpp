@@ -118,12 +118,12 @@ void loop() {
 
             Serial.print("enc\tt");
             Serial.print(millis());
-            Serial.print("\tel");
+            Serial.print("\tl");
             Serial.print(left_enc_pos);
-            Serial.print("\ter");
+            Serial.print("\tr");
             Serial.print(right_enc_pos);
             Serial.print("\n");
-            
+
             prev_print_time = millis();
         }
     }
