@@ -24,7 +24,7 @@ private:
     string serial_buffer;
     serial::Serial serial_ref;
 
-    string left_enc_pub_topic;
+    string enc_pub_topic;
     string right_enc_pub_topic;
     string left_motor_sub_topic;
     string right_motor_sub_topic;
