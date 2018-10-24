@@ -14,8 +14,6 @@ const string EarthRoverMicroControllerBridge::MESSAGE_DELIMITER = "\t";
 
 const string EarthRoverMicroControllerBridge::ENCODER_MESSAGE_HEADER = "enc";
 
-const size_t EarthRoverMicroControllerBridge::MOTOR_COMMAND_MESSAGE_LEN = 7;
-
 long long string_to_int64(string s) {
     stringstream ss(s);
     long long integer = 0;
@@ -28,24 +26,14 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
 {
     ROS_INFO("Earth Rover Arduino bridge starting...");
 
-    nh.param<string>("left_enc_pub_topic", left_enc_pub_topic, "/left_encoder");
-    nh.param<string>("right_enc_pub_topic", right_enc_pub_topic, "/right_encoder");
-    nh.param<string>("left_motor_sub_topic", left_motor_sub_topic, "/left_motor_commands");
-    nh.param<string>("right_motor_sub_topic", right_motor_sub_topic, "/right_motor_commands");
+    nh.param<string>("enc_pub_topic", enc_pub_topic, "/encoder");
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
 
-    ROS_INFO("left_enc_pub_topic: %s", left_enc_pub_topic.c_str());
-    ROS_INFO("right_enc_pub_topic: %s", right_enc_pub_topic.c_str());
-    ROS_INFO("left_motor_sub_topic: %s", left_motor_sub_topic.c_str());
-    ROS_INFO("right_motor_sub_topic: %s", right_motor_sub_topic.c_str());
+    ROS_INFO("enc_pub_topic: %s", enc_pub_topic.c_str());
     ROS_INFO("serial_port: %s", serial_port.c_str());
 
-    right_encoder_pub = nh.advertise<std_msgs::Int64>(right_enc_pub_topic, 5);
-    left_encoder_pub = nh.advertise<std_msgs::Int64>(left_enc_pub_topic, 5);
-
-    left_motor_command_sub = nh.subscribe(left_motor_sub_topic, 1, &EarthRoverMicroControllerBridge::left_motor_command_callback, this);
-    right_motor_command_sub = nh.subscribe(right_motor_sub_topic, 1, &EarthRoverMicroControllerBridge::right_motor_command_callback, this);
+    encoder_pub = nh.advertise<std_msgs::Int64>(enc_pub_topic, 5);
 
     ROS_INFO("Earth Rover Arduino bridge init done");
 }
@@ -154,36 +142,14 @@ void EarthRoverMicroControllerBridge::parseToken(string token)
 {
     switch (token.at(0)) {
         case 't': ROS_DEBUG("earth rover arduino time: %s", token.substr(1).c_str()); break;
-        case 'r':
-            right_encoder_msg.data = STR_TO_INT(token.substr(1));
-            ROS_DEBUG("right_encoder_msg: %li", right_encoder_msg.data);
+        case 'p':
+            encoder_msg.data = STR_TO_INT(token.substr(1));
+            ROS_DEBUG("encoder_msg: %li", encoder_msg.data);
 
-            right_encoder_pub.publish(right_encoder_msg);
+            encoder_pub.publish(encoder_msg);
             break;
-        case 'l':
-            left_encoder_msg.data = STR_TO_INT(token.substr(1));
-            ROS_DEBUG("left_encoder_msg: %li", left_encoder_msg.data);
-
-            left_encoder_pub.publish(left_encoder_msg);
-                break;
         default:
             ROS_WARN("Invalid segment type for earth rover arduino bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
             break;
     }
-}
-
-void EarthRoverMicroControllerBridge::left_motor_command_callback(const std_msgs::Int8& motor_command)
-{
-    char buffer[MOTOR_COMMAND_MESSAGE_LEN];
-    sprintf(buffer, "ml%04d\n", motor_command.data);
-    ROS_DEBUG("writing %s", buffer);
-    serial_ref.write(buffer);
-}
-
-void EarthRoverMicroControllerBridge::right_motor_command_callback(const std_msgs::Int8& motor_command)
-{
-    char buffer[MOTOR_COMMAND_MESSAGE_LEN];
-    sprintf(buffer, "mr%04d\n", motor_command.data);
-    ROS_DEBUG("writing %s", buffer);
-    serial_ref.write(buffer);
 }

@@ -4,7 +4,6 @@
 #include "ros/ros.h"
 #include "serial/serial.h"
 
-#include "std_msgs/Int8.h"
 #include "std_msgs/Int64.h"
 
 #include <iostream>
@@ -25,26 +24,14 @@ private:
     serial::Serial serial_ref;
 
     string enc_pub_topic;
-    string right_enc_pub_topic;
-    string left_motor_sub_topic;
-    string right_motor_sub_topic;
-
-    ros::Publisher left_encoder_pub;
-    ros::Publisher right_encoder_pub;
-
-    ros::Subscriber left_motor_command_sub;
-    ros::Subscriber right_motor_command_sub;
+    ros::Publisher encoder_pub;
 
     // Wait for the packet header specified with a timeout
     bool waitForPacket(const string packet);
 
-    std_msgs::Int64 right_encoder_msg;
-    std_msgs::Int64 left_encoder_msg;
+    std_msgs::Int64 encoder_msg;
     void parseToken(string token);
     void parseEncoderMessage();
-
-    void left_motor_command_callback(const std_msgs::Int8& motor_command);
-    void right_motor_command_callback(const std_msgs::Int8& motor_command);
 
 public:
     EarthRoverMicroControllerBridge(ros::NodeHandle* nodehandle);
@@ -59,8 +46,6 @@ public:
     static const string MESSAGE_DELIMITER;
 
     static const string ENCODER_MESSAGE_HEADER;
-
-    static const size_t MOTOR_COMMAND_MESSAGE_LEN;
 
     int run();
 };

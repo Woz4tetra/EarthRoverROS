@@ -47,7 +47,7 @@ void loop() {
             prev_print_time = millis();
             Serial.print("enc\tt");
             Serial.print(prev_print_time);
-            Serial.print("\t");
+            Serial.print("\tp");
             Serial.print(encoder_pos);
             Serial.print("\n");
         }
