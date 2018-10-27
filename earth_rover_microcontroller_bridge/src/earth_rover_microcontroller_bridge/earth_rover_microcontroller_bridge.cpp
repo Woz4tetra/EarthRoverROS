@@ -26,14 +26,14 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
 {
     ROS_INFO("Earth Rover Arduino bridge starting...");
 
-    nh.param<string>("enc_pub_topic", enc_pub_topic, "/encoder");
+    nh.param<string>("enc_pub_topic", enc_pub_topic, "encoder");
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
 
     ROS_INFO("enc_pub_topic: %s", enc_pub_topic.c_str());
     ROS_INFO("serial_port: %s", serial_port.c_str());
 
-    encoder_pub = nh.advertise<std_msgs::Int64>(enc_pub_topic, 5);
+    encoder_pub = nh.advertise<std_msgs::Int64>(enc_pub_topic, 50);
 
     ROS_INFO("Earth Rover Arduino bridge init done");
 }
@@ -50,7 +50,7 @@ bool EarthRoverMicroControllerBridge::waitForPacket(const string packet)
             ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
             if (serial_buffer.compare(packet) == 0) {
-                ROS_INFO("Earth Rover Arduino sent %s!", packet.c_str());
+                ROS_INFO("Earth Rover Arduino sent '%s'", packet.substr(0, packet.length() - 1).c_str());
                 return true;
             }
         }
@@ -86,7 +86,7 @@ int EarthRoverMicroControllerBridge::run()
 
     serial_ref.write(START_COMMAND);
 
-    ros::Rate clock_rate(60);  // 60 Hz
+    ros::Rate clock_rate(120);  // Hz
 
     while (ros::ok())
     {
@@ -134,8 +134,7 @@ void EarthRoverMicroControllerBridge::parseEncoderMessage()
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
 
-    token = serial_buffer.substr(0, serial_buffer.length() - 1);
-    parseToken(token);
+    parseToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
 }
 
 void EarthRoverMicroControllerBridge::parseToken(string token)

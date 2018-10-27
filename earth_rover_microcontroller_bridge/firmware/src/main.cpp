@@ -42,7 +42,7 @@ void loop() {
     if (!manager.isPaused()) {
         encoder_pos = encoder.read();
 
-        if ((millis() - prev_print_time) > 250) {
+        // if ((millis() - prev_print_time) > 250) {
 
             prev_print_time = millis();
             Serial.print("enc\tt");
@@ -50,6 +50,8 @@ void loop() {
             Serial.print("\tp");
             Serial.print(encoder_pos);
             Serial.print("\n");
-        }
+
+            delay(10);
+        // }
     }
 }
