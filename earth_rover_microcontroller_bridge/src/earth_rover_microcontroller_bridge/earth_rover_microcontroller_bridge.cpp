@@ -26,7 +26,7 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
 {
     ROS_INFO("Earth Rover Arduino bridge starting...");
 
-    nh.param<string>("enc_pub_topic", enc_pub_topic, "encoder");
+    nh.param<string>("enc_pub_topic", enc_pub_topic, "ticks");
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
 

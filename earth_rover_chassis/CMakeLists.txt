@@ -4,6 +4,7 @@ project(earth_rover_chassis)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  message_generation
 )
 
 catkin_python_setup() # added if there is a setup.py. In this case for the node
@@ -39,11 +40,10 @@ catkin_python_setup() # added if there is a setup.py. In this case for the node
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+    FILES
+    TuneMotorPID.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
