@@ -17,8 +17,8 @@ class PololuSimpleMotorController:
         rospy.loginfo("Connecting to pololu simple motor controller")
         self.port = rospy.get_param("~serial_port", "/dev/ttyUSB0")
         self.baud = rospy.get_param("~serial_baud", 115200)
-        self.speed_topic_name = rospy.get_param("~speed_topic_name", "vel")
-        self.brake_topic_name = rospy.get_param("~brake_topic_name", "brake")
+        self.speed_topic_name = rospy.get_param("~speed_topic_name", "command_speed")
+        self.brake_topic_name = rospy.get_param("~brake_topic_name", "command_brake")
         self.reverse_motor = rospy.get_param("~reverse_motor", False)
 
         rospy.loginfo("pololu simple motor controller serial_port: '%s'", self.port)

@@ -22,10 +22,12 @@ class MotorController:
         self.ticks_to_meters = 2 * math.pi * self.info.wheel_radius / self.info.ticks_per_rotation
         self.setpoint_mps = 0.0
         self.open_loop_setpoint = 0.0
+        
         self.enc_tick = 0
         self.current_distance = 0.0
         self.current_speed = 0.0
-        self.prev_enc_tick = 0
+        self.prev_enc_dist = 0.0
+        self.delta_dist = 0.0
 
         self.pid = PID.init_with_constants(self.info.kp, self.info.ki, self.info.kd)
 
@@ -42,10 +44,10 @@ class MotorController:
 
     def compute_speed(self, dt):
         self.current_distance = self.enc_tick * self.ticks_to_meters
-        
-        delta_tick = self.enc_tick - self.prev_enc_tick
-        self.prev_enc_tick = self.enc_tick
-        return delta_tick * self.ticks_to_meters / dt
+        self.delta_dist = self.current_distance - self.prev_enc_dist
+
+        self.prev_enc_dist = self.current_distance
+        return self.delta_dist * self.ticks_to_meters / dt
 
     def tune_pid(self, kp, ki, kd):
         self.pid.reset()

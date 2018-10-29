@@ -3,15 +3,16 @@ from __future__ import division
 from __future__ import absolute_import
 import math
 
+import tf
 import rospy
 from geometry_msgs.msg import Twist, TwistStamped
 from std_msgs.msg import Float64, Int64
 
-from .motor_controller import MotorController, MotorInfo
+from motor_controller import MotorController, MotorInfo
 from earth_rover_chassis.srv import TuneMotorPID
 
 class EarthRoverChassis:
-    def __init__(self, ):
+    def __init__(self):
         rospy.init_node(
             "earth_rover_chassis",
             # log_level=rospy.DEBUG
@@ -30,24 +31,24 @@ class EarthRoverChassis:
         self.kp = rospy.get_param("~kp", 1.0)
         self.ki = rospy.get_param("~ki", 0.0)
         self.kd = rospy.get_param("~kd", 0.0)
+        self.child_frame = rospy.get_param("~odom_child_frame", "base_link")
+        self.parent_frame = rospy.get_param("~odom_parent_frame", "odom")
 
         self.twist_sub = rospy.Subscriber("/cmd_vel", Twist, self.twist_callback, queue_size=5)
-        self.left_encoder_sub = rospy.Subscriber("/left_encoder", Int64, self.left_encoder_callback, queue_size=50)
-        self.right_encoder_sub = rospy.Subscriber("/right_encoder", Int64, self.right_encoder_callback, queue_size=50)
+        self.left_encoder_sub = rospy.Subscriber("left/left_encoder/ticks", Int64, self.left_encoder_callback, queue_size=50)
+        self.right_encoder_sub = rospy.Subscriber("right/right_encoder/ticks", Int64, self.right_encoder_callback, queue_size=50)
 
         self.left_dist_pub = rospy.Publisher("left/left_encoder/distance", Float64, queue_size=5)
         self.right_dist_pub = rospy.Publisher("right/right_encoder/distance", Float64, queue_size=5)
         self.left_speed_pub = rospy.Publisher("left/left_encoder/speed", Float64, queue_size=5)
         self.right_speed_pub = rospy.Publisher("right/right_encoder/speed", Float64, queue_size=5)
 
-        # self.twist_pub = rospy.Publisher("twist_stamped", TwistStamped, queue_size=5)
-
-        self.left_command_pub = rospy.Publisher("left/vel", Float64, queue_size=1)
-        self.right_command_pub = rospy.Publisher("right/vel", Float64, queue_size=1)
+        self.left_command_pub = rospy.Publisher("left/command_speed", Float64, queue_size=5)
+        self.right_command_pub = rospy.Publisher("right/command_speed", Float64, queue_size=5)
 
         self.tuning_service = rospy.Service("tune_motor_pid", TuneMotorPID, self.tune_motor_pid)
 
-        # self.twist_stamped_msg = TwistStamped()
+        self.tf_broadcaster = tf.TransformBroadcaster()
 
         left_motor_info = MotorInfo(
             self.kp, self.ki, self.kd,
@@ -66,13 +67,11 @@ class EarthRoverChassis:
         self.left_motor = MotorController(left_motor_info)
         self.right_motor = MotorController(right_motor_info)
 
-        # self.left_setpoint_pub = rospy.Publisher("left/setpoint", Float64, queue_size=1)
-        # self.right_setpoint_pub = rospy.Publisher("right/setpoint", Float64, queue_size=1)
-        #
-        # self.left_state_pub = rospy.Publisher("left/state", Float64, queue_size=1)
-        # self.right_state_pub = rospy.Publisher("right/state", Float64, queue_size=1)
-
         self.prev_enc_time = rospy.Time.now()
+
+        self.odom_x = 0.0
+        self.odom_y = 0.0
+        self.odom_t = 0.0
 
     # def shutdown(self):
     #     pass
@@ -97,9 +96,6 @@ class EarthRoverChassis:
         self.left_motor.set_target(linear_speed_mps - rotational_speed_mps)
         self.right_motor.set_target(linear_speed_mps + rotational_speed_mps)
 
-        # self.left_setpoint_pub.publish(self.left_speed_setpoint_mps)
-        # self.right_setpoint_pub.publish(self.right_speed_setpoint_mps)
-
     def left_encoder_callback(self, enc_msg):
         self.left_motor.enc_tick = enc_msg.data
 
@@ -107,7 +103,7 @@ class EarthRoverChassis:
         self.right_motor.enc_tick = enc_msg.data
 
     def run(self):
-        clock_rate = rospy.Rate(15)
+        clock_rate = rospy.Rate(30)
 
         self.prev_enc_time = rospy.Time.now()
         while not rospy.is_shutdown():
@@ -119,6 +115,8 @@ class EarthRoverChassis:
             right_output = self.right_motor.update(dt)
 
             self.command_motors(left_output, right_output)
+            self.compute_odometry_pose(self.left_motor.delta_dist, self.right_motor.delta_dist)
+
             self.publish_chassis_data()
 
             clock_rate.sleep()
@@ -133,7 +131,26 @@ class EarthRoverChassis:
         self.left_speed_pub.publish(self.left_motor.current_speed)
         self.right_speed_pub.publish(self.right_motor.current_speed)
 
-        # self.twist_pub.publish(self.twist_stamped_msg)
+        self.tf_broadcaster.sendTransform(
+            (self.odom_x, self.odom_y, 0.0),
+            tf.transformations.quaternion_from_euler(0.0, 0.0, self.odom_t),
+            rospy.Time.now(),
+            self.child_frame,
+            self.parent_frame
+        )
+
+    def compute_odometry_pose(self, delta_left, delta_right):
+        delta_dist = (delta_left + delta_right) / 2
+
+        # angle = arc / radius
+        delta_angle = (delta_right - delta_left) / (self.wheel_distance / 2)
+
+        dx = delta_dist * math.cos(delta_angle)
+        dy = delta_dist * math.sin(delta_angle)
+
+        self.odom_x += dx
+        self.odom_y += dy
+        self.odom_t += delta_angle
 
 if __name__ == "__main__":
     try:

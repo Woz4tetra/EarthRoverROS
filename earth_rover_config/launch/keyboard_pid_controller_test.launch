@@ -1,28 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <group ns="/right" >
-        <node pkg="pololu_simple_motor_controller" type="pololu_simple_motor_controller.py" name="right_motor" output="screen" required="true">
-            <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Simple_High-Power_Motor_Controller_18v15_49FF-7206-7277-5052-4327-1167-if00"/>
-        </node>
-
-        <node name="right_encoder" pkg="earth_rover_microcontroller_bridge" type="earth_rover_microcontroller_bridge_node" required="true" output="screen">
-            <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D432A-if00-port0"/>
-            <param name="serial_baud" type="int" value="115200"/>
-        </node>
-    </group>
-
-
-    <group ns="/left" >
-        <node pkg="pololu_simple_motor_controller" type="pololu_simple_motor_controller.py" name="left_motor" output="screen" required="true">
-            <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Simple_High-Power_Motor_Controller_18v15_49FF-6E06-7277-5052-4315-1167-if00"/>
-            <param name="reverse_motor" type="bool" value="true"/>
-        </node>
-
-        <node name="left_encoder" pkg="earth_rover_microcontroller_bridge" type="earth_rover_microcontroller_bridge_node" required="true" output="screen">
-            <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D31F7-if00-port0"/>
-            <param name="serial_baud" type="int" value="115200"/>
-        </node>
-    </group>
+    <include file="$(find earth_rover_config)/launch/earth_rover_motor_hardware.launch"></include>
 
     <!-- <node name="controller" pkg="pid" type="controller" ns="left_wheel" output="screen" >
         <param name="node_name" value="left_wheel_pid" />
@@ -39,20 +17,22 @@
         <remap from="control_effort" to="/left/vel" />
     </node> -->
 
-    <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis.py" output="screen" required="true">
-        <remap from="/cmd_vel" to="/keyboard_capture/cmd_vel" />
-        <remap from="/left_encoder" to="/left/left_encoder/ticks" />
-        <remap from="/right_encoder" to="/right/right_encoder/ticks" />
+    <group ns="/earth_rover" >
+        <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis.py" output="screen" required="true">
+            <remap from="/cmd_vel" to="/keyboard_capture/cmd_vel" />
+            <!-- <remap from="/left_encoder" to="/left/left_encoder/ticks" />
+            <remap from="/right_encoder" to="/right/right_encoder/ticks" /> -->
 
-        <param name="wheel_radius_meters" value="0.15" />
-        <param name="wheel_distance_meters" value="0.25" />
-        <param name="ticks_per_rotation" value="1245.768" />
-        <!-- Encoder and motor product info: https://www.servocity.com/116-rpm-premium-planetary-gear-motor-w-encoder -->
+            <param name="wheel_radius_meters" value="0.15" />
+            <param name="wheel_distance_meters" value="0.25" />
+            <param name="ticks_per_rotation" value="1245.768" />
+            <!-- Encoder and motor product info: https://www.servocity.com/116-rpm-premium-planetary-gear-motor-w-encoder -->
 
-    </node>
+        </node>
 
-    <node name="keyboard_capture" pkg="keyboard_capture" type="keyboard_capture_node" output="screen" required="true">
-        <param name="scale_angular" value="0.25" />
-        <param name="scale_linear" value="0.25" />
-    </node>
+        <node name="keyboard_capture" pkg="keyboard_capture" type="keyboard_capture_node" output="screen" required="true">
+            <param name="scale_angular" value="0.25" />
+            <param name="scale_linear" value="0.25" />
+        </node>
+    </group>
 </launch>

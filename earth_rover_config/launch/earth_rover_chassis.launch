@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <group ns="/earth_rover" >
+        <arg name="cmd_vel_topic" default="/cmd_vel"/>
+
+        <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis.py" output="screen" required="true">
+            <remap from="/cmd_vel" to="$(arg cmd_vel_topic)" />
+
+            <param name="wheel_radius_meters" value="0.15" />
+            <param name="wheel_distance_meters" value="0.25" />
+            <param name="ticks_per_rotation" value="1245.768" />
+            <!-- Encoder and motor product info - https://www.servocity.com/116-rpm-premium-planetary-gear-motor-w-encoder -->
+
+        </node>
+    </group>
+</launch>
