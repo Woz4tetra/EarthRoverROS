@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch"></include>
+    <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch"></include>
+
+    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+    
+</launch>

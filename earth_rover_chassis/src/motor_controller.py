@@ -1,19 +1,24 @@
-from .pid import PID
+import math
+from pid import PID
 
 class MotorInfo:
-    def __init__(self, kp, ki, kd,
+    def __init__(self, name, kp, ki, kd,
+                 speed_smooth_k,
                  wheel_radius_meters, ticks_per_rotation,
                  min_speed_meters_per_s, max_speed_meters_per_s,
-                 min_command, max_command):
+                 min_command, max_command, output_deadzone):
+        self.name = name
         self.kp = kp
         self.ki = ki
         self.kd = kd
+        self.speed_smooth_k = speed_smooth_k
         self.wheel_radius = wheel_radius_meters
         self.ticks_per_rotation = ticks_per_rotation
         self.min_speed_meters_per_s = min_speed_meters_per_s
         self.max_speed_meters_per_s = max_speed_meters_per_s
         self.min_command = min_command
         self.max_command = max_command
+        self.output_deadzone = output_deadzone
 
 class MotorController:
     def __init__(self, motor_info):
@@ -22,10 +27,11 @@ class MotorController:
         self.ticks_to_meters = 2 * math.pi * self.info.wheel_radius / self.info.ticks_per_rotation
         self.setpoint_mps = 0.0
         self.open_loop_setpoint = 0.0
-        
+
         self.enc_tick = 0
         self.current_distance = 0.0
         self.current_speed = 0.0
+        self.smooth_speed = 0.0
         self.prev_enc_dist = 0.0
         self.delta_dist = 0.0
 
@@ -47,7 +53,18 @@ class MotorController:
         self.delta_dist = self.current_distance - self.prev_enc_dist
 
         self.prev_enc_dist = self.current_distance
-        return self.delta_dist * self.ticks_to_meters / dt
+        self.current_speed = self.delta_dist / dt
+
+        error = self.current_speed - self.smooth_speed
+        self.smooth_speed += self.info.speed_smooth_k * error
+
+        return self.smooth_speed
+
+    def get_speed(self):
+        return self.smooth_speed
+
+    def get_dist(self):
+        return self.current_distance
 
     def tune_pid(self, kp, ki, kd):
         self.pid.reset()
@@ -56,9 +73,12 @@ class MotorController:
         self.pid.kd = kd
 
     def update(self, dt):
-        self.current_speed = self.compute_speed(dt)
+        speed = self.compute_speed(dt)
 
-        error = self.setpoint_mps - self.current_speed
+        error = self.setpoint_mps - speed
         output = self.pid.compute(dt, error, self.open_loop_setpoint)
+
+        if abs(output) < self.info.output_deadzone:
+            output = 0.0
 
         return output

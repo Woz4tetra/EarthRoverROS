@@ -29,7 +29,10 @@ class PID:
 
     def compute(self, dt, error, open_loop_setpoint):
         if self.kd != 0.0:
-            d_value = (self.error - self.prev_error) / dt
+            d_value = (error - self.prev_error) / dt
+        else:
+            d_value = 0.0
+
         if self.ki != 0.0:
             self.integral_total += error * dt
 

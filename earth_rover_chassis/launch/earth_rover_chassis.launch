@@ -1,7 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <group ns="/earth_rover" >
-        <group ns="/right" >
+    <!-- Encoder and motor product info - https://www.servocity.com/116-rpm-premium-planetary-gear-motor-w-encoder -->
+    <group ns="earth_rover" >
+        <arg name="cmd_vel_topic" default="cmd_vel"/>
+
+        <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis_node.py" output="screen" required="true">
+            <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
+
+            <param name="kp" value="1.0" />
+            <param name="ki" value="0.0" />
+            <param name="kd" value="0.0" />
+            <param name="speed_smooth_k" value="0.5" />
+
+            <param name="wheel_radius_meters" value="0.0715645" />
+            <param name="wheel_distance_meters" value="0.391266" />
+            <param name="ticks_per_rotation" value="1245.768" />
+
+            <param name="left_max_speed_meters_per_s" value="0.7115280036277266" />
+            <param name="right_max_speed_meters_per_s" value="0.7548169170047755" />
+
+            <param name="left_min_speed_meters_per_s" value="-0.7149021671255203" />
+            <param name="right_min_speed_meters_per_s" value="-0.7352322682415865" />
+
+            <param name="enable_pid" value="true" />
+        </node>
+
+        <group ns="right" >
             <node pkg="pololu_simple_motor_controller" type="pololu_simple_motor_controller.py" name="right_motor" output="screen" required="true">
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Simple_High-Power_Motor_Controller_18v15_49FF-7206-7277-5052-4327-1167-if00"/>
             </node>
@@ -13,7 +37,7 @@
         </group>
 
 
-        <group ns="/left" >
+        <group ns="left" >
             <node pkg="pololu_simple_motor_controller" type="pololu_simple_motor_controller.py" name="left_motor" output="screen" required="true">
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Simple_High-Power_Motor_Controller_18v15_49FF-6E06-7277-5052-4315-1167-if00"/>
                 <param name="reverse_motor" type="bool" value="true"/>

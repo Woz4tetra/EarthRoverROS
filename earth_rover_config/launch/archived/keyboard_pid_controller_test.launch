@@ -18,8 +18,8 @@
     </node> -->
 
     <group ns="/earth_rover" >
-        <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis.py" output="screen" required="true">
-            <remap from="/cmd_vel" to="/keyboard_capture/cmd_vel" />
+        <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis_node.py" output="screen" required="true">
+            <remap from="cmd_vel" to="keyboard_capture/cmd_vel" />
             <!-- <remap from="/left_encoder" to="/left/left_encoder/ticks" />
             <remap from="/right_encoder" to="/right/right_encoder/ticks" /> -->
 
