@@ -3,6 +3,60 @@
     <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch"></include>
     <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch"></include>
 
-    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-    
+    <group ns="rplidar">
+        <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+    </group>
+
+    <include file="$(find earth_rover_config)/launch/static_transforms.launch"/>
+
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+        <remap from="scan" to="rplidar/scan"/>
+        <rosparam>
+            odom_frame: odom
+            base_frame: base_link
+            map_frame: map
+
+            map_update_interval: 5.0  # Publish new map (seconds)
+            throttle_scans: 3  # 1 = no scans skipped
+
+            maxRange: 16.0 # Max sensor value
+            maxUrange: 12.0 # Usable region of the sensor
+            particles: 30
+
+            # minimumScore: 5
+
+            # Update frequencies
+            linearUpdate: 0.1
+            angularUpdate: 0.1
+            temporalUpdate: 0.05
+            # resampleThreshold: 0.5
+
+            # srr: 0
+            # srt: 0
+            # str: 0
+            # stt: 0
+
+            # Initial Map Size
+            xmin: -15.0
+            ymin: -15.0
+            xmax: 15.0
+            ymax: 15.0
+            delta: 0.025
+
+            # All default
+            # sigma: 0.01
+            # kernelSize: 1
+            # lstep: 0.01
+            # astep: 0.01
+            # iterations: 5
+            # lsigma: 0.075
+            # ogain: 3.0
+            # lskip: 0
+            # llsamplerange: 0.01
+            # llsamplestep: 0.01
+            # lasamplerange: 0.005
+            # lasamplestep: 0.005
+        </rosparam>
+    </node>
+
 </launch>

@@ -9,7 +9,7 @@
         <node name="earth_rover_teleop" pkg="earth_rover_teleop" type="earth_rover_teleop_node.py" output="screen" required="true">
             <param name="linear_scale" value="0.65" />
             <param name="linear_axis" value="1" />
-            <param name="angular_scale" value="40.0" />
+            <param name="angular_scale" value="10.0" />
             <param name="angular_axis" value="2" />
             <param name="publish_directly_to_motors" value="false" />
         </node>
