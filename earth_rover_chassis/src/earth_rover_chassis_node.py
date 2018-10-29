@@ -159,8 +159,8 @@ class EarthRoverChassis:
         # angle = arc / radius
         delta_angle = (delta_right - delta_left) / (self.wheel_distance / 2)
 
-        dx = delta_dist * math.cos(delta_angle)
-        dy = delta_dist * math.sin(delta_angle)
+        dx = delta_dist * math.cos(self.odom_t)
+        dy = delta_dist * math.sin(self.odom_t)
 
         self.odom_x += dx
         self.odom_y += dy
