@@ -6,6 +6,7 @@ import tf
 import rospy
 from geometry_msgs.msg import Twist, TwistStamped
 from std_msgs.msg import Float64, Int64
+from nav_msgs.msg import Odometry
 
 from motor_controller import MotorController, MotorInfo
 from earth_rover_chassis.srv import TuneMotorPID, TuneMotorPIDResponse
@@ -48,6 +49,8 @@ class EarthRoverChassis:
         self.left_command_pub = rospy.Publisher("left/command_speed", Float64, queue_size=5)
         self.right_command_pub = rospy.Publisher("right/command_speed", Float64, queue_size=5)
 
+        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=5)
+
         self.tuning_service = rospy.Service("tune_motor_pid", TuneMotorPID, self.tune_motor_pid)
 
         self.tf_broadcaster = tf.TransformBroadcaster()
@@ -72,13 +75,23 @@ class EarthRoverChassis:
         self.right_motor = MotorController(right_motor_info)
 
         self.prev_enc_time = rospy.Time.now()
+        self.prev_left_output = 0.0
+        self.prev_right_output = 0.0
 
         self.odom_x = 0.0
         self.odom_y = 0.0
         self.odom_t = 0.0
 
-        self.prev_left_output = 0.0
-        self.prev_right_output = 0.0
+        self.odom_vx = 0.0
+        self.odom_vy = 0.0
+        self.odom_vt = 0.0
+
+        self.odom_msg = Odometry()
+
+        self.odom_msg.header.frame_id = self.parent_frame
+        self.odom_msg.child_frame_id = self.child_frame
+        # self.odom_msg.pose.covariance =
+        # self.odom_msg.twist.covariance =
 
     # def shutdown(self):
     #     pass
@@ -128,7 +141,12 @@ class EarthRoverChassis:
                 self.prev_left_output = left_output
                 self.prev_right_output = right_output
 
-            self.compute_odometry_pose(self.left_motor.delta_dist, self.right_motor.delta_dist)
+            self.compute_odometry(
+                self.left_motor.delta_dist,
+                self.right_motor.delta_dist,
+                self.left_motor.get_speed(),
+                self.right_motor.get_speed()
+            )
 
             self.publish_chassis_data()
 
@@ -145,16 +163,37 @@ class EarthRoverChassis:
         self.left_speed_pub.publish(self.left_motor.get_speed())
         self.right_speed_pub.publish(self.right_motor.get_speed())
 
+        odom_quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, self.odom_t)
         self.tf_broadcaster.sendTransform(
             (self.odom_x, self.odom_y, 0.0),
-            tf.transformations.quaternion_from_euler(0.0, 0.0, self.odom_t),
+            odom_quaternion,
             rospy.Time.now(),
             self.child_frame,
             self.parent_frame
         )
 
-    def compute_odometry_pose(self, delta_left, delta_right):
-        delta_dist = (delta_left + delta_right) / 2
+        self.odom_msg.header.stamp = rospy.Time.now()
+        self.odom_msg.pose.pose.position.x = self.odom_x
+        self.odom_msg.pose.pose.position.y = self.odom_y
+        self.odom_msg.pose.pose.position.z = 0.0
+
+        self.odom_msg.pose.pose.orientation.x = odom_quaternion[0]
+        self.odom_msg.pose.pose.orientation.y = odom_quaternion[1]
+        self.odom_msg.pose.pose.orientation.z = odom_quaternion[2]
+        self.odom_msg.pose.pose.orientation.w = odom_quaternion[3]
+
+        self.odom_msg.twist.twist.linear.x = self.odom_vx
+        self.odom_msg.twist.twist.linear.y = self.odom_vy
+        self.odom_msg.twist.twist.linear.z = 0.0
+
+        self.odom_msg.twist.twist.angular.x = 0.0
+        self.odom_msg.twist.twist.angular.y = 0.0
+        self.odom_msg.twist.twist.angular.z = self.odom_vt
+
+        self.odom_pub.publish(self.odom_msg)
+
+    def compute_odometry(self, delta_left, delta_right, left_speed, right_speed):
+        delta_dist = (delta_right + delta_left) / 2
 
         # angle = arc / radius
         delta_angle = (delta_right - delta_left) / (self.wheel_distance / 2)
@@ -165,6 +204,11 @@ class EarthRoverChassis:
         self.odom_x += dx
         self.odom_y += dy
         self.odom_t += delta_angle
+
+        speed = (right_speed + left_speed) / 2
+        self.odom_vx = speed * math.cos(self.odom_t)
+        self.odom_vy = speed * math.sin(self.odom_t)
+        self.odom_vt = (right_speed - left_speed) / (self.wheel_distance / 2)
 
 if __name__ == "__main__":
     try:

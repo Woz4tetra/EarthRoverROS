@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     message_generation
     tf
+    nav_msgs
 )
 
 catkin_python_setup() # added if there is a setup.py. In this case for the node
