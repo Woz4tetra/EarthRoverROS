@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="zed_namespace"		    	default="zed" />
+    <arg name="rplidar_namespace"		    default="rplidar" />
+    <arg name="earth_rover_namespace"		default="earth_rover" />
+
+    <arg name="rgb_topic"               	default="rgb/image_rect_color" />
+    <arg name="depth_topic"             	default="depth/depth_registered" />
+    <arg name="camera_info_topic"       	default="rgb/camera_info" />
+    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
+
+    <!-- RTAB-map Node-->
+    <group ns="rtabmap">
+        <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen" args="--delete_db_on_start">
+            <param name="rtabmapviz"                value="false" />
+            <param name="approx_sync"               value="true" />
+            <param name="visual_odometry"           value="false" />
+
+            <param name="frame_id" type="string" value="base_link"/>
+
+            <param name="subscribe_depth" type="bool" value="true"/>
+            <param name="subscribe_scan" type="bool" value="true"/>
+
+            <remap from="odom" to="/$(arg earth_rover_namespace)/odom"/>
+            <remap from="scan" to="/$(arg rplidar_namespace)/scan"/>
+
+            <remap from="rgb/image" to="/$(arg zed_namespace)/$(arg rgb_topic)"/>
+            <remap from="depth/image" to="/$(arg zed_namespace)/$(arg depth_topic)"/>
+            <remap from="rgb/camera_info" to="/$(arg zed_namespace)/$(arg camera_info_topic)"/>
+            <remap from="depth/camera_info" to="/$(arg zed_namespace)/$(arg depth_camera_info_topic)"/>
+
+            <param name="queue_size" type="int" value="10"/>
+
+            <!-- RTAB-Map's parameters -->
+            <param name="RGBD/NeighborLinkRefining"  value="true"/>
+            <param name="RGBD/ProximityBySpace"      value="true"/>
+            <param name="RGBD/AngularUpdate"         value="0.1"/>
+            <param name="RGBD/LinearUpdate"          value="0.1"/>
+            <param name="RGBD/OptimizeFromGraphEnd"  value="false"/>
+            <param name="Reg/Strategy"               value="1"/> <!-- 0=Visual, 1=ICP, 2=Visual+ICP -->
+            <param name="Reg/Force3DoF"              value="true"/>
+            <param name="Vis/MinInliers"             value="12"/>
+            <param name="Grid/FromDepth"             value="false"/> <!-- Create 2D occupancy grid from laser scan -->
+            <param name="Icp/CorrespondenceRatio"    value="0.05"/>
+            <param name="Icp/MaxCorrespondenceDistance"    value="0.15"/>
+            <param name="Icp/MaxRotation"            value="1.0"/>
+            <param name="Icp/MaxTranslation"         value="0.2"/>
+            <param name="Icp/MaxTranslation"         value="0.2"/>
+
+        </node>
+    </group>
+</launch>

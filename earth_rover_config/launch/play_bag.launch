@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <param name="/use_sim_time" value="true" />
+    <include file="$(find earth_rover_config)/launch/static_transforms.launch"></include>
+
+    <node name="playbag" pkg="rosbag" type="play" args="--clock $(arg bag)" />
+
+    <node name="rviz" pkg="rviz" type="rviz" required="true"
+        args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
+
+    <include file="$(find earth_rover_config)/launch/cartographer_localization.launch" />
+
+</launch>

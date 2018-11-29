@@ -8,7 +8,11 @@
     <arg name="camera_model"         	default="0" /> <!-- 0=ZED, 1=ZEDM-->
     <arg name="serial_number"        	default="0" />
     <arg name="verbose"              	default="true" />
-    <arg name="resolution"           	default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
+    <arg name="resolution"           	default="2" />
+    <!--0 = RESOLUTION_HD2K
+        1 = RESOLUTION_HD1080
+        2 = RESOLUTION_HD720
+        3 = RESOLUTION_VGA -->
     <arg name="frame_rate"           	default="30" />
     <!-- RESOLUTION_HD2K   -> 2208*1242, available framerates: 15 fps.
        RESOLUTION_HD1080 -> 1920*1080, available framerates: 15, 30 fps.
@@ -22,7 +26,14 @@
     <arg name="camera_frame"              default="zed_camera_center" />
 
     <group ns="$(arg rplidar_namespace)">
-        <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+        <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+            <param name="serial_port"         type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
+            <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+            <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
+            <param name="frame_id"            type="string" value="laser"/>
+            <param name="inverted"            type="bool"   value="false"/>
+            <param name="angle_compensate"    type="bool"   value="true"/>
+        </node>
     </group>
 
     <group ns="$(arg zed_namespace)">
@@ -42,6 +53,8 @@
           <arg name="base_frame"                value="$(arg camera_frame)" />
 
           <arg name="publish_map_tf"            value="false" />
+          <arg name="pose_frame"           value="map" />
+          <arg name="odometry_frame"       value="odom" />
         </include>
     </group>
 </launch>

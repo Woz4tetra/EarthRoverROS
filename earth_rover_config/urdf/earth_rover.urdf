@@ -1,0 +1,43 @@
+
+<robot name="earth_rover">
+  <material name="blue">
+    <color rgba="0.0 0.0 1.0 1" />
+  </material>
+  <material name="gray">
+    <color rgba="0.2 0.2 0.2 1" />
+  </material>
+
+  <link name="laser_link">
+    <visual>
+      <origin xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.05" radius="0.03" />
+      </geometry>
+      <material name="gray" />
+    </visual>
+  </link>
+
+  <link name="zed_camera_center_link">
+    <visual>
+      <origin xyz="0 0 0" />
+      <geometry>
+        <cylinder length="0.05" radius="0.03" />
+      </geometry>
+      <material name="blue" />
+    </visual>
+  </link>
+
+  <link name="base_link" />
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="laser_link" />
+    <origin xyz="0.0802 0.0 0.17068" />
+  </joint>
+
+  <joint name="zed_camera_center_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="zed_camera_center_link" />
+    <origin xyz="0.1177 0.0 0.114905" />
+  </joint>
+</robot>

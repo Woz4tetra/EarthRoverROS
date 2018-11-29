@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch"></include>
-    <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch"></include>
+    <arg name="rplidar_namespace"		    default="rplidar" />
 
-    <group ns="rplidar">
-        <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-    </group>
-
-    <include file="$(find earth_rover_config)/launch/static_transforms.launch"/>
+    <include file="$(find earth_rover_ekf_formatter)/launch/earth_rover_ekf_formatter.launch"></include>
 
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
-        <remap from="scan" to="rplidar/scan"/>
+        <remap from="scan" to="/$(arg rplidar_namespace)/scan"/>
         <rosparam>
             odom_frame: odom
             base_frame: base_link

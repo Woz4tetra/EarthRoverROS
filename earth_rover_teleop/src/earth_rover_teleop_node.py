@@ -34,8 +34,8 @@ class EarthRoverTeleop:
         self.twist_command = Twist()
 
     def joystick_msg_callback(self, msg):
-        linear_val = self.linear_scale * msg.axes[self.linear_axis]
-        angular_val = self.angular_scale * msg.axes[self.angular_axis]
+        linear_val = self.linear_scale * msg.axes[int(self.linear_axis)]
+        angular_val = self.angular_scale * msg.axes[int(self.angular_axis)]
         if self.publish_to_motors:
             self.left_motor_pub.publish(linear_val - angular_val)
             self.right_motor_pub.publish(linear_val + angular_val)

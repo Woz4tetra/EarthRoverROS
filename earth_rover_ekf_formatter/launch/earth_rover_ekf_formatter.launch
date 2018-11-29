@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <group ns="earth_rover" >
+        <node name="earth_rover_ekf_formatter" pkg="earth_rover_ekf_formatter" type="earth_rover_ekf_formatter_node.py" output="screen" required="true">
+        </node>
+    </group>
+</launch>
