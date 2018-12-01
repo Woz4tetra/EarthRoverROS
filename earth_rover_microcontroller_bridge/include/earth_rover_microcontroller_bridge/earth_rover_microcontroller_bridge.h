@@ -30,6 +30,7 @@ private:
     ros::Publisher encoder_pub;
 
     string led_control_service_name;
+    string led_control_start_command;
     ros::ServiceServer led_control_service;
 
     // Wait for the packet header specified with a timeout

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <!-- Encoder and motor product info - https://www.servocity.com/116-rpm-premium-planetary-gear-motor-w-encoder -->
+    <arg name="led_control_left_start_command"   default="-" />
+    <arg name="led_control_right_start_command"   default="-" />
+    <arg name="cmd_vel_topic" default="cmd_vel"/>
+
     <group ns="earth_rover" >
-        <arg name="cmd_vel_topic" default="cmd_vel"/>
 
         <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis_node.py" output="screen" required="true">
             <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
@@ -34,6 +37,7 @@
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D432A-if00-port0"/>
                 <param name="serial_baud" type="int" value="115200"/>
                 <param name="led_control_service_name" type="str" value="led_control_right"/>
+                <param name="led_control_start_command" type="str" value="$(arg led_control_left_start_command)"/>
             </node>
         </group>
 
@@ -48,6 +52,7 @@
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D31F7-if00-port0"/>
                 <param name="serial_baud" type="int" value="115200"/>
                 <param name="led_control_service_name" type="str" value="led_control_left"/>
+                <param name="led_control_start_command" type="str" value="$(arg led_control_right_start_command)"/>
             </node>
         </group>
     </group>

@@ -82,6 +82,11 @@ void set_to_white() {
     strip.ColorSet(strip.Color(255, 255, 255, 255));
 }
 
+void set_to_off() {
+    strip.ActivePattern = NONE;
+    strip.ColorSet(strip.Color(0, 0, 0, 0));
+}
+
 void set_rainbow_type(char rainbow_type)
 {
     if (rainbow_type == 's') {
@@ -120,7 +125,7 @@ void loop() {
         {
             encoder.write(0);
             prev_print_time = millis();
-            set_rainbow_type('s');
+            // set_rainbow_type('s');
         }
         else if (status == 1)  // stop event
         {
@@ -131,6 +136,7 @@ void loop() {
             Serial.println(command);
             switch(command.charAt(0)) {
         		case 'o': fade_to_off(); break;
+                case '-': set_to_off(); break;
         		case 'w': set_to_white(); break;
         		case 'r': set_rainbow_type(command.charAt(1)); break;
         		case 'f': strip.Fade(char_to_color(command.charAt(1)), strip.Color(0, 0, 0, 1), 255, 5); break;

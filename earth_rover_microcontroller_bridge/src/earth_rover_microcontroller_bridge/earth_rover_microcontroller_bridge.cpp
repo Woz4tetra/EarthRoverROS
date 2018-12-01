@@ -30,10 +30,14 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
     nh.param<string>("led_control_service_name", led_control_service_name, "led_control_left");
+    nh.param<string>("led_control_start_command", led_control_start_command, "-");
 
     ROS_INFO("enc_pub_topic: %s", enc_pub_topic.c_str());
     ROS_INFO("serial_port: %s", serial_port.c_str());
     ROS_INFO("led_control_service_name: %s", led_control_service_name.c_str());
+    ROS_INFO("led_control_start_command: %s", led_control_start_command.c_str());
+
+    led_control_start_command += "\n";
 
     encoder_pub = nh.advertise<std_msgs::Int64>(enc_pub_topic, 50);
     led_control_service = nh.advertiseService(led_control_service_name, &EarthRoverMicroControllerBridge::controlLeds, this);
@@ -90,6 +94,10 @@ int EarthRoverMicroControllerBridge::run()
     serial_ref.write(START_COMMAND);
 
     ros::Rate clock_rate(120);  // Hz
+
+    // ros::Duration(0.25).sleep();
+    ROS_INFO("led_control_start_command: %s", led_control_start_command.c_str());
+    serial_ref.write(led_control_start_command);
 
     while (ros::ok())
     {
