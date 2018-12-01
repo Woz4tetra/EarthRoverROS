@@ -53,6 +53,7 @@
           <arg name="base_frame"                value="$(arg camera_frame)" />
 
           <arg name="publish_map_tf"            value="false" />
+          <arg name="publish_tf"            value="false" />
           <arg name="pose_frame"           value="map" />
           <arg name="odometry_frame"       value="odom" />
         </include>

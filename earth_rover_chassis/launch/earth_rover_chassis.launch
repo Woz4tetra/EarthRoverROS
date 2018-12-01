@@ -33,6 +33,7 @@
             <node name="right_encoder" pkg="earth_rover_microcontroller_bridge" type="earth_rover_microcontroller_bridge_node" required="true" output="screen">
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D432A-if00-port0"/>
                 <param name="serial_baud" type="int" value="115200"/>
+                <param name="led_control_service_name" type="str" value="led_control_right"/>
             </node>
         </group>
 
@@ -46,6 +47,7 @@
             <node name="left_encoder" pkg="earth_rover_microcontroller_bridge" type="earth_rover_microcontroller_bridge_node" required="true" output="screen">
                 <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D31F7-if00-port0"/>
                 <param name="serial_baud" type="int" value="115200"/>
+                <param name="led_control_service_name" type="str" value="led_control_left"/>
             </node>
         </group>
     </group>

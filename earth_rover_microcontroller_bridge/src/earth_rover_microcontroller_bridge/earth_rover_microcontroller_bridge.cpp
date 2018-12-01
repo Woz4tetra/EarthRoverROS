@@ -29,11 +29,14 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
     nh.param<string>("enc_pub_topic", enc_pub_topic, "ticks");
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
+    nh.param<string>("led_control_service_name", led_control_service_name, "led_control_left");
 
     ROS_INFO("enc_pub_topic: %s", enc_pub_topic.c_str());
     ROS_INFO("serial_port: %s", serial_port.c_str());
+    ROS_INFO("led_control_service_name: %s", led_control_service_name.c_str());
 
     encoder_pub = nh.advertise<std_msgs::Int64>(enc_pub_topic, 50);
+    led_control_service = nh.advertiseService(led_control_service_name, &EarthRoverMicroControllerBridge::controlLeds, this);
 
     ROS_INFO("Earth Rover Arduino bridge init done");
 }
@@ -151,4 +154,12 @@ void EarthRoverMicroControllerBridge::parseToken(string token)
             ROS_WARN("Invalid segment type for earth rover arduino bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
             break;
     }
+}
+
+bool EarthRoverMicroControllerBridge::controlLeds(LedControl::Request &req, LedControl::Response &res)
+{
+    string command = req.command;
+    command += "\n";
+    serial_ref.write(command);
+    return true;
 }

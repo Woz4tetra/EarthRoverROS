@@ -9,7 +9,10 @@
 #include <iostream>
 #include <sstream>
 
+#include "earth_rover_microcontroller_bridge/LedControl.h"
+
 using namespace std;
+using namespace earth_rover_microcontroller_bridge;
 
 // string parsing macros
 #define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
@@ -26,12 +29,16 @@ private:
     string enc_pub_topic;
     ros::Publisher encoder_pub;
 
+    string led_control_service_name;
+    ros::ServiceServer led_control_service;
+
     // Wait for the packet header specified with a timeout
     bool waitForPacket(const string packet);
 
     std_msgs::Int64 encoder_msg;
     void parseToken(string token);
     void parseEncoderMessage();
+    bool controlLeds(LedControl::Request &req, LedControl::Response &res);
 
 public:
     EarthRoverMicroControllerBridge(ros::NodeHandle* nodehandle);
