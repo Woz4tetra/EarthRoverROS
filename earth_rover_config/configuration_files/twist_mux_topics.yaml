@@ -1,0 +1,19 @@
+topics:
+    -
+        name    : e_stop
+        topic   : e_stop
+        timeout : 0.05
+        priority: 255
+    -
+        name    : joystick
+        topic   : cmd_vel_joy_input
+        timeout : 0.5
+        priority: 10
+
+# for lidar e stop node, it will only look at points in the direction the robot is driving
+# if the robot is going forward, only the front 180º will be used
+# backwards, back 180º. Rotating left, left 180º. Rotating right, right 180º
+
+# This prevents a situation where the robot detects a wall but the joystick can't take control
+# because the point is still within the bounding box of the robot. The joystick will only be
+# allowed control if the lidar e stop node detects its driving away from the wall

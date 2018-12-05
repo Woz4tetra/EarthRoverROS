@@ -4,6 +4,7 @@
     <arg name="joystick_angular_scale"   default="10.0" />
     <arg name="joystick_linear_axis"   default="1" />
     <arg name="joystick_angular_axis"   default="3" />
+    <arg name="twist_publish_topic_name"   default="cmd_vel" />
 
     <node name="joystick" pkg="joy" type="joy_node" output="screen" required="true">
         <param name="dev" value="/dev/input/js0" type="str"/>
@@ -17,6 +18,7 @@
             <param name="linear_axis" value="$(arg joystick_linear_axis)" />
             <param name="angular_axis" value="$(arg joystick_angular_axis)" />
             <param name="publish_directly_to_motors" value="false" />
+            <param name="twist_publish_topic_name" value="$(arg twist_publish_topic_name)" />
         </node>
     </group>
 </launch>

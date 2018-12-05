@@ -101,6 +101,7 @@ void set_rainbow_type(char rainbow_type)
 void setup() {
     // manager.begin();  /// this doesn't work for some reason...
     Serial.begin(115200);
+    delay(250);
     manager.writeHello();
 
     #if defined (__AVR_ATtiny85__)

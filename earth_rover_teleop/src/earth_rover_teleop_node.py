@@ -6,7 +6,7 @@ import tf
 import rospy
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Bool
 
 from earth_rover_microcontroller_bridge.srv import *
 
@@ -17,24 +17,41 @@ class EarthRoverTeleop:
             # log_level=rospy.DEBUG
         )
 
+        # class variables
+        self.twist_command = Twist()
+        self.e_stop_lock_msg = Bool()
+        self.e_stop_msg = Twist()
+        self.is_e_stopped = False
+        self.prev_joy_msg = None
+
+        # parameters from launch file
         self.linear_scale = rospy.get_param("~linear_scale", 1.0)
         self.linear_axis = rospy.get_param("~linear_axis", 1)
         self.angular_scale = rospy.get_param("~angular_scale", 1.0)
         self.angular_axis = rospy.get_param("~angular_axis", 2)
         self.publish_to_motors = rospy.get_param("~publish_directly_to_motors", False)
+        self.twist_publish_topic_name = rospy.get_param("~twist_publish_topic_name", "cmd_vel")
         self.left_led_control_service_name = rospy.get_param("~left_led_control_service_name", "left/left_encoder/led_control_left")
         self.right_led_control_service_name = rospy.get_param("~right_led_control_service_name", "right/right_encoder/led_control_right")
 
+        # publishing topics
         self.cmd_vel_pub = None
         self.left_motor_pub = None
         self.right_motor_pub = None
+
         if self.publish_to_motors:
             self.left_motor_pub = rospy.Publisher("left/command_speed", Float64, queue_size=5)
             self.right_motor_pub = rospy.Publisher("right/command_speed", Float64, queue_size=5)
         else:
-            self.cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=5)
+            self.cmd_vel_pub = rospy.Publisher(self.twist_publish_topic_name, Twist, queue_size=5)
+
+        self.e_stop_lock_pub = rospy.Publisher("e_stop_lock", Bool, queue_size=5)
+        self.e_stop_pub = rospy.Publisher("e_stop", Twist, queue_size=5)
+
+        # subscription topics
         self.joy_sub = rospy.Subscriber("/joy", Joy, self.joystick_msg_callback, queue_size=5)
 
+        # LED services
         rospy.loginfo("Waiting for service '%s'" % self.left_led_control_service_name)
         rospy.wait_for_service(self.left_led_control_service_name)
         rospy.loginfo("'%s' service is ready!" % self.left_led_control_service_name)
@@ -46,17 +63,36 @@ class EarthRoverTeleop:
         self.left_led_control_service = rospy.ServiceProxy(self.left_led_control_service_name, LedControl)
         self.right_led_control_service = rospy.ServiceProxy(self.right_led_control_service_name, LedControl)
 
-        self.twist_command = Twist()
+        rospy.loginfo("Joystick E stop is mapped to the Y button")
+
+    def did_button_change(self, msg, index):
+        return msg.buttons[index] and self.prev_joy_msg.buttons[index] != msg.buttons[index]
 
     def joystick_msg_callback(self, msg):
-        if msg.buttons[1]:  # B
-            self.control_leds("w")
+        if self.prev_joy_msg is None:
+            self.prev_joy_msg = msg
+            return
 
-        elif msg.buttons[0]:  # A
+        # button mapping:
+        # 0: A,    1: B,     2: X,      3: Y
+        # 4: L1,   5: R1,    6: Select, 7: Start
+        # 8: Home, 9: L joy, 10: R joy
+        if self.did_button_change(msg, 0):
             self.control_leds("o")
 
-        elif msg.buttons[2]:  # X
+        elif self.did_button_change(msg, 1):
+            self.control_leds("w")
+
+        elif self.did_button_change(msg, 2):
             self.control_leds("rs")
+
+        elif self.did_button_change(msg, 3):
+            self.is_e_stopped = not self.is_e_stopped
+            self.e_stop_lock_msg.data = self.is_e_stopped
+            if self.is_e_stopped:
+                rospy.logwarn("Joystick E stop was thrown!")
+            else:
+                rospy.loginfo("Joystick E stop was released")
 
         linear_val = self.linear_scale * msg.axes[int(self.linear_axis)]
         angular_val = self.angular_scale * msg.axes[int(self.angular_axis)]
@@ -70,6 +106,8 @@ class EarthRoverTeleop:
             self.twist_command.angular.z = angular_val
             self.cmd_vel_pub.publish(self.twist_command)
 
+        self.prev_joy_msg = msg
+
     def control_leds(self, command):
         try:
             self.left_led_control_service(command)
@@ -78,10 +116,28 @@ class EarthRoverTeleop:
         except rospy.ServiceException, e:
             print "Service call failed: %s" % e
 
+    def run(self):
+        clock_rate = rospy.Rate(30)
+
+        prev_time = rospy.get_rostime()
+        while not rospy.is_shutdown():
+            if self.is_e_stopped:
+                self.e_stop_pub.publish(self.e_stop_msg)
+
+                now = rospy.get_rostime()
+                if now - prev_time > rospy.Duration(1):
+                    rospy.logwarn("Joystick E stop is thrown. Press Y to release")
+                    prev_time = now
+
+            self.e_stop_lock_pub.publish(self.e_stop_lock_msg)
+            clock_rate.sleep()
+
+
 if __name__ == "__main__":
     try:
-        EarthRoverTeleop()
-        rospy.spin()
+        node = EarthRoverTeleop()
+        node.run()
+        # rospy.spin()
     except rospy.ROSInterruptException:
         pass
     rospy.loginfo("Exiting earth_rover_chassis node")
