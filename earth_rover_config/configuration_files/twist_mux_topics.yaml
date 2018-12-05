@@ -13,6 +13,7 @@ topics:
 # for lidar e stop node, it will only look at points in the direction the robot is driving
 # if the robot is going forward, only the front 180º will be used
 # backwards, back 180º. Rotating left, left 180º. Rotating right, right 180º
+# for combinations, this 180º field can be angled accordingly
 
 # This prevents a situation where the robot detects a wall but the joystick can't take control
 # because the point is still within the bounding box of the robot. The joystick will only be
