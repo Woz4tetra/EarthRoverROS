@@ -8,7 +8,11 @@ project(earth_rover_lidar_guard)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  std_msgs
   geometry_msgs
+  nav_msgs
+  sensor_msgs
+  tf
   roscpp
   roslaunch
 )
@@ -106,7 +110,7 @@ roslaunch_add_file_check(launch)
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES earth_rover_lidar_guard
-    CATKIN_DEPENDS geometry_msgs roscpp roslaunch
+    CATKIN_DEPENDS std_msgs geometry_msgs nav_msgs sensor_msgs tf roscpp roslaunch
     # DEPENDS system_lib
 )
 

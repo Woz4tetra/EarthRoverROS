@@ -1,20 +1,20 @@
 #include <earth_rover_lidar_guard/earth_rover_lidar_guard.h>
-#include <earth_rover_lidar_guard/polygon_checker.h>
 
 EarthRoverLidarGuard::EarthRoverLidarGuard(ros::NodeHandle* nodehandle):
 nh(*nodehandle)
 {
     nh.param<string>("laser_topic_name", laser_topic_name, "scan");
     nh.param<string>("odom_topic_name", odom_topic_name, "odom");
-    nh.param<double>("max_linear_speed", max_linear_speed, 1.0);
-    nh.param<double>("max_angular_speed", max_angular_speed, 1.0);
+    nh.param<double>("max_left_speed_mps", max_left_speed_mps, 1.0);
+    nh.param<double>("max_right_speed_mps", max_right_speed_mps, 1.0);
+    nh.param<double>("wheel_distance", wheel_distance, 1.0);
     nh.param("bounding_polygon", xml_parsed_bounding_polygon, xml_parsed_bounding_polygon);
 
     laser_sub = nh.subscribe(laser_topic_name, 5, &EarthRoverLidarGuard::laser_callback, this);
     odom_sub = nh.subscribe(odom_topic_name, 5, &EarthRoverLidarGuard::odom_callback, this);
 
-    lidar_guard_lock_pub = nh.advertise("lidar_guard_lock", std_msgs::Bool, queue_size=5);
-    lidar_guard_pub = nh.advertise("lidar_guard", geometry_msgs::Twist, queue_size=5);
+    lidar_guard_lock_pub = nh.advertise<std_msgs::Bool>("lidar_guard_lock", 5);
+    lidar_guard_pub = nh.advertise<geometry_msgs::Twist>("lidar_guard", 5);
 
     focus_angle = 0.0;
     focus_start_angle = -M_PI;
@@ -24,15 +24,23 @@ nh(*nodehandle)
     is_guarded = false;
     guard_detection_angle = 0.0;
 
+    bounding_polygon = new vector<PolygonPoint>();
+
+    // for this calculation, both motors are rotating forwards
+    max_linear_speed = (max_right_speed_mps + max_left_speed_mps) / 2;
+
+    // for this calculation, the left motor is rotating backwards at max speed
+    max_angular_speed = (max_right_speed_mps + max_left_speed_mps) / (wheel_distance / 2);
+
     ROS_ASSERT_MSG(!(xml_parsed_bounding_polygon.size() & 1), "An odd number of numbers was supplied for the bounding polygon. There must an even number for x, y pairs.");
     ROS_ASSERT_MSG(xml_parsed_bounding_polygon.size() > 4, "Supplied points does not form a polygon. Length is %d", xml_parsed_bounding_polygon.size());
     for (int index = 0; index < xml_parsed_bounding_polygon.size(); index += 2)
     {
-        Point p = {
-            (double)xml_parsed_bounding_polygon[i],
-            (double)xml_parsed_bounding_polygon[i + 1]
+        PolygonPoint p = {
+            (double)xml_parsed_bounding_polygon[index],
+            (double)xml_parsed_bounding_polygon[index + 1]
         };
-        bounding_polygon.push_back(p);
+        bounding_polygon->push_back(p);
     }
 }
 
@@ -49,12 +57,12 @@ int EarthRoverLidarGuard::run()
 
             now = ros::Time::now();
             if (now - prev_time > ros::Duration(1.0)) {
-                ROS_WARN("LIDAR detected an obstacle at angle %0.2f", guard_detection_angle);
+                ROS_WARN("LIDAR detected an obstacle at angle %0.2f deg", guard_detection_angle);
                 prev_time = now;
             }
         }
 
-        lidar_guard_pub.publish(lidar_guard_lock_msg);
+        lidar_guard_lock_pub.publish(lidar_guard_lock_msg);
         ros::spinOnce();
         clock_rate.sleep();
     }
@@ -64,38 +72,52 @@ int EarthRoverLidarGuard::run()
 
 bool EarthRoverLidarGuard::is_within_bounds(double range_m, double angle_rad)
 {
+    if (isinf(range_m)) {
+        return false;
+    }
     double x = range_m * cos(angle_rad);
     double y = range_m * sin(angle_rad);
 
+    ROS_INFO("x: %0.4f, y: %0.4f", x, y);
     return isInside(bounding_polygon, x, y);
+}
+
+void EarthRoverLidarGuard::set_guard_state(bool state) {
+    is_guarded = state;
+    lidar_guard_lock_msg.data = state;
 }
 
 void EarthRoverLidarGuard::laser_callback(const sensor_msgs::LaserScan& scan_msg)
 {
-    // assumes min angle < 0
+    // assumes min angle < 0 and zero degrees is forward
     if (!is_moving) {
-        lidar_guard_lock_msg.data = false;
+        set_guard_state(false);
         return;
     }
 
     double ray_angle = scan_msg.angle_min;
+
+    // prevents odom_callback from overriding these values in the middle of the loop.
+    double local_start_angle = focus_start_angle;
+    double local_finish_angle = focus_finish_angle;
+
     for (size_t index = 0; index < scan_msg.ranges.size(); index++) {
-        // if within the selected range
-        if (focus_start_angle < ray_angle && ray_angle < focus_finish_angle) {
+        if (local_start_angle < ray_angle && ray_angle < local_finish_angle) {
             // consider laser point for safety check
             if (is_within_bounds(scan_msg.ranges[index], ray_angle)) {
                 // throw stop signal to speed command mux
+
                 guard_detection_angle = ray_angle;
-                lidar_guard_lock_msg.data = true;
-                ROS_WARN("LIDAR guard thrown! Detected an obstacle at angle %0.2f", guard_detection_angle);
+                set_guard_state(true);
+                ROS_WARN("LIDAR guard thrown! Detected an obstacle %0.2fm away at angle %0.2f deg in range (%0.2f...%0.2f)",
+                    scan_msg.ranges[index], guard_detection_angle * 180.0 / M_PI, local_start_angle * 180.0 / M_PI, local_finish_angle * 180.0 / M_PI);
 
                 return;
             }
         }
-
         ray_angle += scan_msg.angle_increment;
     }
-    lidar_guard_lock_msg.data = false;
+    set_guard_state(false);
 }
 
 void EarthRoverLidarGuard::odom_callback(const nav_msgs::Odometry& odom_msg)
@@ -104,7 +126,7 @@ void EarthRoverLidarGuard::odom_callback(const nav_msgs::Odometry& odom_msg)
     // double vy = odom_msg.twist.twist.linear.y;
     double angular_speed = odom_msg.twist.twist.angular.z;
 
-    if (fabs(vx) > 0.0 && fabs(angular_speed) > 0.0) {
+    if (fabs(vx) > 0.07 || fabs(angular_speed) > 0.15) {
         is_moving = true;
     }
     else {
@@ -120,16 +142,29 @@ void EarthRoverLidarGuard::odom_callback(const nav_msgs::Odometry& odom_msg)
     );
     const tf::Matrix3x3 rotation_mat(q);
     tfScalar yaw, pitch, roll;
-    rotation_mat.getEulerYPR(&yaw, &pitch, &roll);
+    rotation_mat.getEulerYPR(yaw, pitch, roll, 1);
 
     // double linear_speed = sqrt(vx * vx + vy * vy);  // linear speed without +/- direction
     double linear_velocity = vx / cos(yaw); // linear velocity
     double linear_percent = linear_velocity / max_linear_speed;
     double angular_percent = angular_speed / max_angular_speed;
 
-    focus_angle = atan2(linear_percent, angular_percent);
-    focus_start_angle = focus_angle - M_PI;
-    focus_finish_angle = focus_angle + M_PI;
+    focus_angle = atan2(angular_percent, linear_percent);
+    focus_start_angle = focus_angle - M_PI / 2;
+    focus_finish_angle = focus_angle + M_PI / 2;
+
+    if (focus_start_angle < -M_PI) {
+        focus_start_angle += 2 * M_PI;
+    }
+    if (focus_finish_angle < -M_PI) {
+        focus_finish_angle += 2 * M_PI;
+    }
+
+    if (focus_start_angle > focus_finish_angle) {
+        double tmp = focus_start_angle;
+        focus_start_angle = focus_finish_angle;
+        focus_finish_angle = tmp;
+    }
 
     ROS_INFO("focus angle: %0.2f", focus_angle * 180.0 / M_PI);
 }

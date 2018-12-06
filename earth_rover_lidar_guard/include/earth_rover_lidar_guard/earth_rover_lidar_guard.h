@@ -9,9 +9,11 @@
 #include <ros/assert.h>
 #include <tf/transform_datatypes.h>
 #include <std_msgs/Bool.h>
-#include <sensors_msgs/LaserScan.h>
+#include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+
+#include <earth_rover_lidar_guard/polygon_checker.h>
 
 using namespace std;
 
@@ -21,6 +23,7 @@ private:
     ros::NodeHandle nh;
 
     string laser_topic_name;
+    string odom_topic_name;
     ros::Subscriber laser_sub;
     ros::Subscriber odom_sub;
 
@@ -33,12 +36,14 @@ private:
     void laser_callback(const sensor_msgs::LaserScan& scan_msg);
     void odom_callback(const nav_msgs::Odometry& odom_msg);
 
+    void set_guard_state(bool state);
     bool is_within_bounds(double range_m, double angle_rad);
 
     XmlRpc::XmlRpcValue xml_parsed_bounding_polygon;
 
-    double max_linear_speed;
-    double max_angular_speed;
+    double wheel_distance;
+    double max_left_speed_mps, max_right_speed_mps;
+    double max_linear_speed, max_angular_speed;
 
     double focus_angle;
     double focus_start_angle;
@@ -48,7 +53,7 @@ private:
     bool is_guarded;
     double guard_detection_angle;
 
-    vector<Point> bounding_polygon;
+    vector<PolygonPoint>* bounding_polygon;
 
 public:
     EarthRoverLidarGuard(ros::NodeHandle* nodehandle);

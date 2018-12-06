@@ -7,15 +7,15 @@ using namespace std;
 // Define Infinite (Using INT_MAX caused overflow problems)
 #define INF 100000.0
 
-struct Point
+struct PolygonPoint
 {
 	int x;
 	int y;
 };
 
 // Given three colinear points p, q, r, the function checks if
-// point q lies on line segment 'pr'
-bool onSegment(Point p, Point q, Point r)
+// PolygonPoint q lies on line segment 'pr'
+bool onSegment(PolygonPoint p, PolygonPoint q, PolygonPoint r)
 {
 	return (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
         q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y));
@@ -26,18 +26,20 @@ bool onSegment(Point p, Point q, Point r)
 // 0 --> p, q and r are colinear
 // 1 --> Clockwise
 // 2 --> Counterclockwise
-int orientation(Point p, Point q, Point r)
+int orientation(PolygonPoint p, PolygonPoint q, PolygonPoint r)
 {
 	int val = (q.y - p.y) * (r.x - q.x) -
 			(q.x - p.x) * (r.y - q.y);
 
-	if (val == 0) return 0; // colinear
-	return (val > 0)? 1: 2; // clock or counterclock wise
+	if (val == 0) {
+        return 0; // colinear
+    }
+	return (val > 0) ? 1 : 2; // clock or counterclock wise
 }
 
 // The function that returns true if line segment 'p1q1'
 // and 'p2q2' intersect.
-bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+bool doIntersect(PolygonPoint p1, PolygonPoint q1, PolygonPoint p2, PolygonPoint q2)
 {
 	// Find the four orientations needed for general and
 	// special cases
@@ -67,31 +69,34 @@ bool doIntersect(Point p1, Point q1, Point p2, Point q2)
 }
 
 // Returns true if the point p (x, y) lies inside the polygon[] with n vertices
-bool isInside(vector<Point> polygon, double x, double y)
+bool isInside(vector<PolygonPoint>* polygon, double x, double y)
 {
-    Point p = {x, y};
-    
+    PolygonPoint p = {x, y};
+
 	// There must be at least 3 vertices in polygon[]
-	if (polygon.size() < 3) return false;
+	if (polygon->size() < 3) {
+        return false;
+    }
 
 	// Create a point for line segment from p to infinite
-	Point extreme = {INF, p.y};
+	PolygonPoint extreme = {INF, p.y};
 
 	// Count intersections of the above line with sides of polygon
 	int count = 0, i = 0;
 	do
 	{
-		int next = (i + 1) % polygon.size();
+		int next = (i + 1) % polygon->size();
 
 		// Check if the line segment from 'p' to 'extreme' intersects
 		// with the line segment from 'polygon[i]' to 'polygon[next]'
-		if (doIntersect(polygon[i], polygon[next], p, extreme))
+		if (doIntersect(polygon->at(i), polygon->at(next), p, extreme))
 		{
 			// If the point 'p' is colinear with line segment 'i-next',
 			// then check if it lies on segment. If it lies, return true,
 			// otherwise false
-			if (orientation(polygon[i], p, polygon[next]) == 0)
-			return onSegment(polygon[i], p, polygon[next]);
+			if (orientation(polygon->at(i), p, polygon->at(next)) == 0) {
+                return onSegment(polygon->at(i), p, polygon->at(next));
+            }
 
 			count++;
 		}

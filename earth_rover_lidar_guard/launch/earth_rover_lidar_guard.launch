@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <group ns="earth_rover">
+        <node name="earth_rover_lidar_guard" pkg="earth_rover_lidar_guard" type="earth_rover_lidar_guard_node" output="screen" required="true">
+            <param name="laser_topic_name" value="/rplidar/scan" type="str"/>
+            <param name="odom_topic_name" value="/earth_rover/odom" type="str"/>
+            <param name="max_left_speed_mps" value="0.75" type="double"/>
+            <param name="max_right_speed_mps" value="0.75" type="double"/>
+            <param name="wheel_distance" value="0.391266" type="double"/>
+
+            <rosparam param="bounding_polygon">
+                [
+                    -0.01, 0.01,
+                    0.01, 0.01,
+                    0.01, -0.01,
+                    -0.01, -0.01,
+                ]
+            </rosparam>
+        </node>
+    </group>
+</launch>

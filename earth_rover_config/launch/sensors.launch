@@ -26,7 +26,7 @@
     <arg name="camera_frame"              default="zed_camera_center" />
 
     <group ns="$(arg rplidar_namespace)">
-        <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+        <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen" required="true">
             <param name="serial_port"         type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
             <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
             <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
