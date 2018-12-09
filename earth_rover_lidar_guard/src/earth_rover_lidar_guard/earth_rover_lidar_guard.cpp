@@ -24,7 +24,7 @@ nh(*nodehandle)
     is_guarded = false;
     guard_detection_angle = 0.0;
 
-    bounding_polygon = new vector<PolygonPoint>();
+    bounding_polygon = new vector<double>();
 
     // for this calculation, both motors are rotating forwards
     max_linear_speed = (max_right_speed_mps + max_left_speed_mps) / 2;
@@ -36,11 +36,12 @@ nh(*nodehandle)
     ROS_ASSERT_MSG(xml_parsed_bounding_polygon.size() > 4, "Supplied points does not form a polygon. Length is %d", xml_parsed_bounding_polygon.size());
     for (int index = 0; index < xml_parsed_bounding_polygon.size(); index += 2)
     {
-        PolygonPoint p = {
-            (double)xml_parsed_bounding_polygon[index],
-            (double)xml_parsed_bounding_polygon[index + 1]
-        };
-        bounding_polygon->push_back(p);
+        double x = (double)xml_parsed_bounding_polygon[index];
+        double y = (double)xml_parsed_bounding_polygon[index + 1];
+        bounding_polygon->push_back(x);
+        bounding_polygon->push_back(y);
+        ROS_INFO("x: %0.4f, y: %0.4f", x, y);
+
     }
 }
 
@@ -78,7 +79,6 @@ bool EarthRoverLidarGuard::is_within_bounds(double range_m, double angle_rad)
     double x = range_m * cos(angle_rad);
     double y = range_m * sin(angle_rad);
 
-    ROS_INFO("x: %0.4f, y: %0.4f", x, y);
     return isInside(bounding_polygon, x, y);
 }
 

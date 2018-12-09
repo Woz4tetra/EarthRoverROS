@@ -53,7 +53,7 @@ private:
     bool is_guarded;
     double guard_detection_angle;
 
-    vector<PolygonPoint>* bounding_polygon;
+    vector<double>* bounding_polygon;
 
 public:
     EarthRoverLidarGuard(ros::NodeHandle* nodehandle);

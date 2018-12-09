@@ -2,10 +2,11 @@
 // Refer https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 // for explanation of functions onSegment(), orientation() and doIntersect()
 #include <iostream>
+#include <math.h>
 using namespace std;
 
 // Returns true if the point p (x, y) lies inside the polygon[] with n vertices
-bool isInside(vector<PolygonPoint>* polygon, double x, double y)
+bool isInside(vector<double>* polygon, double x, double y)
 {
     int n = polygon->size();
     bool inside = false;
@@ -15,15 +16,15 @@ bool isInside(vector<PolygonPoint>* polygon, double x, double y)
         return false;
     }
 
-    double p1x = polygon[0];
-    double p1y = polygon[1];
+    double p1x = polygon->at(0);
+    double p1y = polygon->at(1);
 
     double p2x = 0.0;
     double p2y = 0.0;
 
 	for (size_t index = 0; index < n + 1; index += 2) {
-	    p2x = polygon[mod(index, n)];
-	    p2y = polygon[mod(index + 1, n)];
+	    p2x = polygon->at(fmod(index, n));
+	    p2y = polygon->at(fmod(index + 1, n));
 
 	    double min_y = p1y < p2y ? p1y : p2y;
 	    double max_y = p1y < p2y ? p2y : p1y;
@@ -47,5 +48,5 @@ bool isInside(vector<PolygonPoint>* polygon, double x, double y)
 	    p1y = p2y;
 	}
 
-	return inside
+	return inside;
 }
