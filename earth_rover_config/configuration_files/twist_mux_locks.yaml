@@ -4,8 +4,8 @@ locks:
         topic   : e_stop_lock
         timeout : 0.0
         priority: 255
-#     -
-#         name    : wall_detected_lidar
-#         topic   : wall_detected_lidar
-#         timeout : 0.0
-#         priority: 20
+    -
+        name    : lidar_guard
+        topic   : earth_rover_lidar_guard/lidar_guard_lock
+        timeout : 0.0
+        priority: 20
