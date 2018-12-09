@@ -77,6 +77,7 @@ def test_algorithm(shapely_polygon, my_polygon):
         plt.plot(my_out_points[:, 0], my_out_points[:, 1], 'o', color='r', markersize=7, markeredgewidth=1,
                  markerfacecolor='None')
 
+
 def write_to_file(path, polygon):
     buffer = ""
     for point in polygon.tolist():
@@ -84,7 +85,6 @@ def write_to_file(path, polygon):
     buffer = buffer[:-2]
     with open(path, 'w+') as file:
         file.write(buffer)
-
 
 
 def load_points():
