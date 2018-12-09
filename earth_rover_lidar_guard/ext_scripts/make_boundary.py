@@ -1,3 +1,4 @@
+import re
 import json
 import numpy as np
 
@@ -39,12 +40,22 @@ def my_algorithm(polygon, point):
     return inside
 
 
-def test_algorithm(shapely_polygon, my_polygon):
+def read_test_points(path):
+    test_points = []
+    with open(path) as file:
+        contents = file.read()
+        matches = re.findall(r"\[ INFO\] \[\d*.\d*\]: x: ([-\d.]*), y: ([-\d.]*)", contents)
+        for match in matches:
+            test_points.append([float(match[0]), float(match[1])])
+    return test_points
+
+
+def test_algorithm(shapely_polygon, my_polygon, test_points):
     reference_in_points = []
     reference_out_points = []
     my_in_points = []
     my_out_points = []
-    for test_point in np.random.uniform(-0.5, 0.5, (100, 2)):
+    for test_point in test_points:
         reference_result = reference_algorithm(shapely_polygon, test_point)
         my_result = my_algorithm(my_polygon, test_point)
 
@@ -91,32 +102,43 @@ def load_points():
     with open("points_of_interest.json") as file:
         points_of_interest = json.load(file)
 
-    bounding_box_max = Polygon(*points_of_interest["bounding_box_max"])
-    bounding_box_min = Polygon(*points_of_interest["bounding_box_min"])
+    bounding_box = Polygon(*points_of_interest["bounding_box"])
 
-    bounding_box_max.order_points()
-    bounding_box_min.order_points()
+    bounding_box.order_points()
+
+    bounding_box_max = bounding_box.with_polygon(bounding_box)
+    bounding_box_min = bounding_box.with_polygon(bounding_box)
+
+    # bounding_box_max.scale(1.2, 1.2)
+    bounding_box_max.offset(0.1, 0)
 
     bounding_box_max_points = np.array(bounding_box_max.points)
     bounding_box_min_points = np.array(bounding_box_min.points)
 
-    # bounding_box_max_points = np.rot90(bounding_box_max_points.T, 3)
-    # bounding_box_min_points = np.rot90(bounding_box_min_points.T, 3)
+    theta = np.radians(180)
+    c, s = np.cos(theta), np.sin(theta)
+    rotation_mat = np.array([[c, -s], [s, c]])
+
+    bounding_box_max_points = bounding_box_max_points.dot(rotation_mat)
+    bounding_box_min_points = bounding_box_min_points.dot(rotation_mat)
 
     shapely_bounding_box_max = ShapelyPolygon(bounding_box_max_points)
-    shapely_bounding_box_min = ShapelyPolygon(bounding_box_max_points)
+    # shapely_bounding_box_min = ShapelyPolygon(bounding_box_max_points)
 
     plt.plot(0, 0, 'ko')
-    plt.plot(bounding_box_max_points[:, 0], bounding_box_max_points[:, 1], '.')
+    plt.plot(bounding_box_max_points[:, 0], bounding_box_max_points[:, 1], 'g.')
     plt.plot(bounding_box_min_points[:, 0], bounding_box_min_points[:, 1], '.')
 
     plt.gca().add_patch(patches.Polygon(bounding_box_max_points, closed=True, fill=False))
     plt.gca().add_patch(patches.Polygon(bounding_box_min_points, closed=True, fill=False))
 
-    test_algorithm(shapely_bounding_box_max, bounding_box_max_points)
+    # test_points = np.random.uniform(-0.5, 0.5, (100, 2))
+    test_points = read_test_points("test_points.txt")
+    test_algorithm(shapely_bounding_box_max, bounding_box_max_points, test_points)
     # test_algorithm(shapely_bounding_box_min, bounding_box_min_points)
 
     write_to_file("bounding_box_max.txt", bounding_box_max_points)
+    write_to_file("bounding_box_min.txt", bounding_box_min_points)
 
     plt.show()
 
