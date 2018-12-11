@@ -110,7 +110,7 @@ def load_points():
     bounding_box_min = bounding_box.with_polygon(bounding_box)
 
     # bounding_box_max.scale(1.2, 1.2)
-    bounding_box_max.offset(0.1, 0)
+    bounding_box_max.offset(0.05, 0)
 
     bounding_box_max_points = np.array(bounding_box_max.points)
     bounding_box_min_points = np.array(bounding_box_min.points)
