@@ -44,6 +44,7 @@ private:
     double wheel_distance;
     double max_left_speed_mps, max_right_speed_mps;
     double max_linear_speed, max_angular_speed;
+    double angle_tf;
 
     double focus_angle;
     double focus_start_angle;

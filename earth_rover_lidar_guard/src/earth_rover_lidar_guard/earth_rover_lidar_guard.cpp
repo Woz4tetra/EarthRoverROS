@@ -8,7 +8,10 @@ nh(*nodehandle)
     nh.param<double>("max_left_speed_mps", max_left_speed_mps, 1.0);
     nh.param<double>("max_right_speed_mps", max_right_speed_mps, 1.0);
     nh.param<double>("wheel_distance", wheel_distance, 1.0);
+    nh.param<double>("angle_tf_deg", angle_tf, 0.0);
     nh.param("bounding_polygon", xml_parsed_bounding_polygon, xml_parsed_bounding_polygon);
+
+    angle_tf *= M_PI / 180.0;
 
     laser_sub = nh.subscribe(laser_topic_name, 5, &EarthRoverLidarGuard::laser_callback, this);
     odom_sub = nh.subscribe(odom_topic_name, 5, &EarthRoverLidarGuard::odom_callback, this);
@@ -40,7 +43,7 @@ nh(*nodehandle)
         double y = (double)xml_parsed_bounding_polygon[index + 1];
         bounding_polygon->push_back(x);
         bounding_polygon->push_back(y);
-        ROS_INFO("x: %0.4f, y: %0.4f", x, y);
+        ROS_INFO("point %d of %d; x: %0.4f, y: %0.4f", index, xml_parsed_bounding_polygon.size(), x, y);
 
     }
 }
@@ -76,8 +79,8 @@ bool EarthRoverLidarGuard::is_within_bounds(double range_m, double angle_rad)
     if (isinf(range_m)) {
         return false;
     }
-    double x = range_m * cos(angle_rad);
-    double y = range_m * sin(angle_rad);
+    double x = range_m * cos(angle_rad + angle_tf);
+    double y = range_m * sin(angle_rad + angle_tf);
 
     return isInside(bounding_polygon, x, y);
 }
