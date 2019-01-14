@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <node name="earth_rover_teensy_bridge" pkg="earth_rover_teensy_bridge" type="earth_rover_teensy_bridge_node" required="true" output="screen">
+        <param name="serial_port" type="string" value="/dev/ttyUSB0"/>
+        <param name="serial_baud" type="int" value="115200"/>
+
+
+        <rosparam param="activation_distances_cm">
+                [
+                    4.0,
+                    4.0,
+                    4.0,
+                    4.0,
+                    4.0,
+                    4.0,
+                ]
+            </rosparam>
+    </node>
+</launch>
