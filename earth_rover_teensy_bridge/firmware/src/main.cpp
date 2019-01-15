@@ -101,7 +101,7 @@ void loop()
         // }
         else if (status == 0)  // user command
         {
-            if (command.chatAt(0) == 'd') {
+            if (command.charAt(0) == 'd') {
                 if (num_act_dists_received < NUM_SENSORS) {
                     num_act_dists_received++;
                 }

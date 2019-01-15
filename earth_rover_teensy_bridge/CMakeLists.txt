@@ -61,7 +61,7 @@ roslaunch_add_file_check(launch)
 ## Generate services in the 'srv' folder
 add_service_files(
     FILES
-    LedControl.srv
+    ActivationDistances.srv
 )
 
 ## Generate actions in the 'action' folder

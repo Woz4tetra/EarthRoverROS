@@ -39,16 +39,16 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     ROS_INFO("guard_topic: %s", guard_topic.c_str());
 
     guard_lock_pub = nh.advertise<std_msgs::Bool>(guard_lock_topic, 50);
-    guard_pub = nh.advertise<std_msgs::Twist>(guard_topic, 50);
-    act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDistances, this);
+    guard_pub = nh.advertise<geometry_msgs::Twist>(guard_topic, 50);
+    act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDists, this);
 
     activation_distances = new vector<double>();
     ROS_ASSERT_MSG(xml_parsed_activation_distances.size() == 6, "Need 6 activation distances. %d were supplied", xml_parsed_activation_distances.size());
     for (int index = 0; index < xml_parsed_activation_distances.size(); index++)
     {
         double dist = (double)xml_parsed_activation_distances[index];
-        activation_distances->push_back(dist)
-        ROS_INFO("activation distance for #d: %fcm", index + 1, activation_distances[index]);
+        activation_distances->push_back(dist);
+        ROS_INFO("activation distance for #%d: %fcm", index + 1, activation_distances->at(index));
     }
 
     ROS_INFO("Earth Rover Teensy bridge init done");
@@ -131,11 +131,11 @@ int EarthRoverTeensyBridge::run()
             }
         }
 
-        now = ros::Time::now();
+        ros::Time now = ros::Time::now();
         if (now - prev_time > ros::Duration(1.0 / 30.0))  // publish lock at 30Hz
         {
             prev_time = now;
-            guard_lock_pub.publish(guard_lock_msg.data);
+            guard_lock_pub.publish(guard_lock_msg);
             if (guard_lock_msg.data) {  // if is guarded, publish zero velocity commands
                 guard_pub.publish(guard_msg);
             }
@@ -160,11 +160,11 @@ void EarthRoverTeensyBridge::parseActDistMessage()
         if (token.size() == 0) {
             break;
         }
-        parseToken(token);
+        parseActDistToken(token);
         serial_buffer.erase(0, pos + MESSAGE_DELIMITER.length());
     }
 
-    parseToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
+    parseActDistToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
 }
 
 void EarthRoverTeensyBridge::parseActDistToken(string token)
@@ -189,15 +189,15 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
 
 void EarthRoverTeensyBridge::writeActivationDists()
 {
-    for (size_t index = 0; index < activation_distances.size(); index++) {
+    for (size_t index = 0; index < activation_distances->size(); index++) {
         std::ostringstream command_stream;
         command_stream << "d" << index << "\t" << activation_distances->at(index) << "\n";
 
-        serial_ref.write(command_stream.c_str());
+        serial_ref.write(command_stream.str());
     }
 }
 
-bool EarthRoverTeensyBridge::setActivationDist(LedControl::Request &req, LedControl::Response &res)
+bool EarthRoverTeensyBridge::setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res)
 {
     // if activation distance is negative, skip setting it.
     if (req.dist1 >= 0.0) (*activation_distances)[0] = req.dist1;

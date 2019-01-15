@@ -44,12 +44,11 @@ private:
     // Wait for the packet header specified with a timeout
     bool waitForPacket(const string packet);
 
-    std_msgs::Int64 encoder_msg;
     void parseActDistToken(string token);
     void parseActDistMessage();
 
     void writeActivationDists();
-    bool setActivationDist(LedControl::Request &req, LedControl::Response &res);
+    bool setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res);
 
     int activated_sensor;
     double activated_distance;

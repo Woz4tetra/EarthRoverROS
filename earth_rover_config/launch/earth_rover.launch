@@ -14,7 +14,7 @@
         <arg name="twist_publish_topic_name"   value="cmd_vel_joy_input" />
     </include>
 
-    <!-- <include file="$(find earth_rover_lidar_guard)/launch/earth_rover_lidar_guard.launch"></include> -->
+    <include file="$(find earth_rover_lidar_guard)/launch/earth_rover_lidar_guard.launch"></include>
 
     <include file="$(find earth_rover_config)/launch/chassis_mux.launch"></include>
     <include file="$(find earth_rover_config)/launch/sensors.launch"></include>
