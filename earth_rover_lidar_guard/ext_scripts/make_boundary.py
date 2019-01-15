@@ -104,13 +104,17 @@ def load_points():
 
     bounding_box = Polygon(*points_of_interest["bounding_box"])
 
+    # push front points forward
+    for index in range(4, 10):
+        bounding_box.points[index][0] += 0.05
+
     bounding_box.order_points()
 
     bounding_box_max = bounding_box.with_polygon(bounding_box)
     bounding_box_min = bounding_box.with_polygon(bounding_box)
 
     # bounding_box_max.scale(1.2, 1.2)
-    bounding_box_max.offset(0.05, 0)
+    bounding_box_max.offset(0.03, 0)
 
     bounding_box_max_points = np.array(bounding_box_max.points)
     bounding_box_min_points = np.array(bounding_box_min.points)
