@@ -104,7 +104,9 @@ int EarthRoverTeensyBridge::run()
 
     ros::Rate clock_rate(120);  // Hz
 
-    // ros::Duration(0.25).sleep();
+    ros::Duration(0.25).sleep();
+    writeActivationDists();
+
     ros::Time prev_time = ros::Time::now();
     while (ros::ok())
     {

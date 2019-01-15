@@ -7,12 +7,17 @@
 
 class HC_SR04_x6 {
 public:
-    HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float max_dist=200.0, bool use_cm=true);
+    HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float max_dist=200.0, bool use_cm=true, float activation_dist=10.0);
 
     void begin();
     void start();
     bool isFinished();
     float getRange();
+
+    void setActDist(float activation_dist);
+    bool isActivated();
+
+
     static HC_SR04_x6* instance(int instance_index)
     {
         switch (instance_index) {
@@ -39,6 +44,7 @@ private:
     float _durationToUnits(unsigned long duration);
 
     int _trigger, _echo, _int, _instance_index;
+    float _activation_dist;
     float _max;
     bool _use_cm;
     volatile unsigned long _start, _end;

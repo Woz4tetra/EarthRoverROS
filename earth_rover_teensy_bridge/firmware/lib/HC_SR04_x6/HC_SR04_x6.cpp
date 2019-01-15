@@ -8,8 +8,9 @@ HC_SR04_x6 *HC_SR04_x6::_instance3(NULL);
 HC_SR04_x6 *HC_SR04_x6::_instance4(NULL);
 HC_SR04_x6 *HC_SR04_x6::_instance5(NULL);
 
-HC_SR04_x6::HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float max_dist, bool use_cm)
-: _trigger(trigger), _echo(echo), _int(interrupt), _instance_index(instance_index), _max(max_dist), _use_cm(use_cm), _finished(false)
+HC_SR04_x6::HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float max_dist, bool use_cm, float activation_dist)
+: _trigger(trigger), _echo(echo), _int(interrupt), _instance_index(instance_index), _activation_dist(activation_dist),
+  _max(max_dist), _use_cm(use_cm), _finished(false)
 {
     switch (instance_index) {
         case 0: if (_instance0 == 0) _instance0 = this; break;
@@ -55,6 +56,14 @@ float HC_SR04_x6::getRange()
         result = _max;
     }
     return result;
+}
+
+bool HC_SR04_x6::isActivated() {
+    return getRange() <= _activation_dist;
+}
+
+void HC_SR04_x6::setActDist(float activation_dist) {
+    _activation_dist = activation_dist;
 }
 
 bool HC_SR04_x6::isFinished()
