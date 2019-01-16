@@ -20,6 +20,8 @@ using namespace earth_rover_teensy_bridge;
 #define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
 #define STR_TO_INT(string) string_to_int64(string)
 
+enum ActivationStates { ACTIVATED, WAITING, STALE };
+
 class EarthRoverTeensyBridge {
 private:
     ros::NodeHandle nh; // ROS node handle
@@ -54,6 +56,8 @@ private:
     int activated_sensor;
     double activated_distance;
     ros::Time activation_time;
+    ros::Duration activation_timeout;
+    ActivationStates activation_state;
 
 public:
     EarthRoverTeensyBridge(ros::NodeHandle* nodehandle);
@@ -63,6 +67,7 @@ public:
     static const string PACKET_END;  // character that every packet ends with
     static const string HELLO_MESSAGE;  // the message to expect when the microcontroller starts up
     static const string READY_MESSAGE;  // message signalling that the microcontroller is ready to receive commands
+    static const string READY_ASK_COMMAND;
     static const string START_COMMAND;  // packet to send to the microcontroller to tell it to start
     static const string STOP_COMMAND;  // packet to send to the microcontroller to tell it to stop
     static const string MESSAGE_DELIMITER;

@@ -10,10 +10,10 @@ topics:
         timeout : 0.5
         priority: 10
     -
-        name    : lidar_guard
-        topic   : earth_rover_lidar_guard/lidar_guard
-        timeout : 0.5
-        priority: 200
+        name    : sonar_guard
+        topic   : earth_rover_teensy_bridge/dist_guard
+        timeout : 1.5
+        priority: 20
 
 # for lidar e stop node, it will only look at points in the direction the robot is driving
 # if the robot is going forward, only the front 180º will be used

@@ -46,6 +46,9 @@ int SerialManager::readSerial()
         if (pause()) return 1;
         else return -1;
     }
+    else if (_command.equals("r")) {
+        writeReady();
+    }
     else {
         if (!_paused) return 0;
         else return -1;

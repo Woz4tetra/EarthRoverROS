@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-platformio run --target upload --upload-port /dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_018D432A-if00-port0
+platformio run --target upload --upload-port /dev/serial/by-id/usb-Teensyduino_USB_Serial_4989760-if00

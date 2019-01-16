@@ -5,7 +5,7 @@ locks:
         timeout : 0.0
         priority: 255
     -
-        name    : lidar_guard
-        topic   : earth_rover_lidar_guard/lidar_guard_lock
-        timeout : 0.0
+        name    : sonar_guard
+        topic   : earth_rover_teensy_bridge/dist_guard_lock
+        timeout : 1.5
         priority: 20

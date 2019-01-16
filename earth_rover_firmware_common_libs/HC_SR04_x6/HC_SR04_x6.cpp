@@ -60,7 +60,7 @@ float HC_SR04_x6::getRange()
 
 bool HC_SR04_x6::isActivated() {
     float range = getRange();
-    return range != 0.0 && range <= _activation_dist;
+    return 1.0 <= range && range <= _activation_dist;
 }
 
 void HC_SR04_x6::setActDist(float activation_dist) {

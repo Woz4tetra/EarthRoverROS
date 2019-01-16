@@ -8,6 +8,7 @@ const string EarthRoverTeensyBridge::PACKET_END = "\n";
 
 const string EarthRoverTeensyBridge::HELLO_MESSAGE = "hello!" + PACKET_END;
 const string EarthRoverTeensyBridge::READY_MESSAGE = "ready!" + PACKET_END;
+const string EarthRoverTeensyBridge::READY_ASK_COMMAND = "r" + PACKET_END;
 const string EarthRoverTeensyBridge::START_COMMAND = "g" + PACKET_END;
 const string EarthRoverTeensyBridge::STOP_COMMAND = "s" + PACKET_END;
 const string EarthRoverTeensyBridge::MESSAGE_DELIMITER = "\t";
@@ -26,11 +27,13 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
 {
     ROS_INFO("Earth Rover Teensy bridge starting...");
 
+    double activation_timeout_double = 0.0;
     nh.param<string>("serial_port", serial_port, "/dev/ttyUSB0");
     nh.param<int>("serial_baud", serial_baud, 115200);
     nh.param<string>("act_dist_service_name", act_dist_service_name, "set_guard_distances");
     nh.param<string>("guard_lock_topic", guard_lock_topic, "dist_guard_lock");
     nh.param<string>("guard_topic", guard_topic, "dist_guard");
+    nh.param<double>("activation_timeout", activation_timeout_double, 1.5);
     nh.param("activation_distances_cm", xml_parsed_activation_distances, xml_parsed_activation_distances);
 
     ROS_INFO("serial_port: %s", serial_port.c_str());
@@ -41,6 +44,10 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     guard_lock_pub = nh.advertise<std_msgs::Bool>(guard_lock_topic, 50);
     guard_pub = nh.advertise<geometry_msgs::Twist>(guard_topic, 50);
     act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDists, this);
+
+    guard_lock_msg.data = false;
+    activation_state = WAITING;
+    activation_timeout = ros::Duration(activation_timeout_double);
 
     activation_distances = new vector<double>();
     ROS_ASSERT_MSG(xml_parsed_activation_distances.size() == 6, "Need 6 activation distances. %d were supplied", xml_parsed_activation_distances.size());
@@ -66,7 +73,7 @@ bool EarthRoverTeensyBridge::waitForPacket(const string packet)
             ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
             if (serial_buffer.compare(packet) == 0) {
-                ROS_INFO("Earth Rover Arduino sent '%s'", packet.substr(0, packet.length() - 1).c_str());
+                ROS_INFO("Earth Rover Teensy sent '%s'", packet.substr(0, packet.length() - 1).c_str());
                 return true;
             }
         }
@@ -93,9 +100,9 @@ int EarthRoverTeensyBridge::run()
         return -1;
     }
 
-    if (!waitForPacket(HELLO_MESSAGE)) {
-        return 1;
-    }
+    ros::Duration(0.25).sleep();
+    serial_ref.write(READY_ASK_COMMAND);
+    ros::Duration(0.01).sleep();
     if (!waitForPacket(READY_MESSAGE)) {
         return 1;
     }
@@ -104,7 +111,6 @@ int EarthRoverTeensyBridge::run()
 
     ros::Rate clock_rate(120);  // Hz
 
-    ros::Duration(0.25).sleep();
     writeActivationDists();
 
     ros::Time prev_time = ros::Time::now();
@@ -135,13 +141,22 @@ int EarthRoverTeensyBridge::run()
         if (now - prev_time > ros::Duration(1.0 / 30.0))  // publish lock at 30Hz
         {
             prev_time = now;
+            if (activation_state == ACTIVATED) {
+                guard_lock_msg.data = true;
+                // activation_state = STALE;
+            }
+            else {
+                guard_lock_msg.data = false;
+            }
             guard_lock_pub.publish(guard_lock_msg);
+
             if (guard_lock_msg.data) {  // if is guarded, publish zero velocity commands
                 guard_pub.publish(guard_msg);
             }
         }
-        if (guard_lock_msg.data && now - activation_time > ros::Duration(0.5)) {
-            guard_lock_msg.data = false;
+
+        if (guard_lock_msg.data && now - activation_time > activation_timeout) {
+            activation_state = WAITING;
         }
     }
 
@@ -169,8 +184,8 @@ void EarthRoverTeensyBridge::parseActDistMessage()
 
     parseActDistToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
 
-    if (guard_lock_msg.data) {
-        ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activation_dist);
+    if (activation_state == ACTIVATED) {
+        ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activated_distance);
     }
 }
 
@@ -180,10 +195,13 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
         case 't': ROS_DEBUG("earth rover teensy time: %s", token.substr(1).c_str()); break;
         case 'n':
             activated_sensor = STR_TO_INT(token.substr(1));
-            if (!guard_lock_msg.data && activated_sensor != 0)  {
+            if (activated_sensor != 0) {// && activation_state == WAITING)  {
                 activation_time = ros::Time::now();
-                guard_lock_msg.data = true;
+                activation_state = ACTIVATED;
             }
+            // else if (activated_sensor == 0 && activation_state == STALE) {
+            //     activation_state = WAITING;
+            // }
             break;
         case 'd':
             activated_distance = STR_TO_FLOAT(token.substr(1));
@@ -200,7 +218,7 @@ void EarthRoverTeensyBridge::writeActivationDists()
         // std::ostringstream command_stream;
         // command_stream << "d" << index << "\t" << activation_distances->at(index) << "\n";
 
-        serial_ref.write(boost::format("d%d\t%0.3f\n") % (index + 1) % activation_distances->at(index););
+        serial_ref.write(boost::str(boost::format("d%d\t%0.3f\n") % (index + 1) % activation_distances->at(index)));
     }
 }
 
