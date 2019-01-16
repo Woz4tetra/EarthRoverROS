@@ -54,10 +54,14 @@ private:
     bool setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res);
 
     int activated_sensor;
+    int prev_activated_sensor;
     double activated_distance;
+    double prev_distance;
     ros::Time activation_time;
     ros::Duration activation_timeout;
     ActivationStates activation_state;
+
+    void checkGuardState();
 
 public:
     EarthRoverTeensyBridge(ros::NodeHandle* nodehandle);
