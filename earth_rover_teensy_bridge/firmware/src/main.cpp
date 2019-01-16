@@ -115,6 +115,7 @@ void loop()
                     case 4: sensor_4.setActDist(activation_dist); break;
                     case 5: sensor_5.setActDist(activation_dist); break;
                     case 6: sensor_6.setActDist(activation_dist); break;
+                    default: Serial.print("-Invalid sensor number: "); Serial.println(index);
                 }
             }
         }

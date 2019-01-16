@@ -4,16 +4,21 @@
         <param name="serial_port" type="string" value="/dev/ttyUSB0"/>
         <param name="serial_baud" type="int" value="115200"/>
 
-
+        <!-- Sensor 1: Front right. 3.0cm -->
+        <!-- Sensor 2: Front left. 3.0cm -->
+        <!-- Sensor 3: Back right side. 2.5cm -->
+        <!-- Sensor 4: Back left side. 2.5cm -->
+        <!-- Sensor 5: Back right behind. 6.0cm -->
+        <!-- Sensor 6: Back left behind. 6.0cm -->
         <rosparam param="activation_distances_cm">
-                [
-                    4.0,
-                    4.0,
-                    4.0,
-                    4.0,
-                    4.0,
-                    4.0,
-                ]
-            </rosparam>
+            [
+                4.0,
+                4.0,
+                3.5,
+                3.5,
+                7.0,
+                7.0,
+            ]
+        </rosparam>
     </node>
 </launch>

@@ -140,6 +140,9 @@ int EarthRoverTeensyBridge::run()
                 guard_pub.publish(guard_msg);
             }
         }
+        if (guard_lock_msg.data && now - activation_time > ros::Duration(0.5)) {
+            guard_lock_msg.data = false;
+        }
     }
 
     serial_ref.write(STOP_COMMAND);
@@ -165,6 +168,10 @@ void EarthRoverTeensyBridge::parseActDistMessage()
     }
 
     parseActDistToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
+
+    if (guard_lock_msg.data) {
+        ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activation_dist);
+    }
 }
 
 void EarthRoverTeensyBridge::parseActDistToken(string token)
@@ -182,7 +189,7 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
             activated_distance = STR_TO_FLOAT(token.substr(1));
             break;
         default:
-            ROS_WARN("Invalid segment type for earth rover arduino bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
+            ROS_WARN("Invalid segment type for earth rover teensy bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
             break;
     }
 }
@@ -190,10 +197,10 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
 void EarthRoverTeensyBridge::writeActivationDists()
 {
     for (size_t index = 0; index < activation_distances->size(); index++) {
-        std::ostringstream command_stream;
-        command_stream << "d" << index << "\t" << activation_distances->at(index) << "\n";
+        // std::ostringstream command_stream;
+        // command_stream << "d" << index << "\t" << activation_distances->at(index) << "\n";
 
-        serial_ref.write(command_stream.str());
+        serial_ref.write(boost::format("d%d\t%0.3f\n") % (index + 1) % activation_distances->at(index););
     }
 }
 

@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <sstream>
+#include "boost/format.hpp"
 
 #include "earth_rover_teensy_bridge/ActivationDistances.h"
 
