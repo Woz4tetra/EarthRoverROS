@@ -99,7 +99,7 @@ void loop()
     if (prev_ping_time > now) {
         prev_ping_time = now;
     }
-    if (now - prev_ping_time <= 50) {
+    if (now - prev_ping_time <= 12) {
         return;
     }
     // Serial.println("ping!");
@@ -119,12 +119,12 @@ void loop()
        delayMicroseconds(100);
     }
 
-    Serial.print("-1: "); Serial.print(sensor_1.getRange());
-    Serial.print("\t2: "); Serial.print(sensor_2.getRange());
-    Serial.print("\t3: "); Serial.print(sensor_3.getRange());
-    Serial.print("\t4: "); Serial.print(sensor_4.getRange());
-    Serial.print("\t5: "); Serial.print(sensor_5.getRange());
-    Serial.print("\t6: "); Serial.println(sensor_6.getRange());
+    // Serial.print("-1: "); Serial.print(sensor_1.getRange());
+    // Serial.print("\t2: "); Serial.print(sensor_2.getRange());
+    // Serial.print("\t3: "); Serial.print(sensor_3.getRange());
+    // Serial.print("\t4: "); Serial.print(sensor_4.getRange());
+    // Serial.print("\t5: "); Serial.print(sensor_5.getRange());
+    // Serial.print("\t6: "); Serial.println(sensor_6.getRange());
 
     Serial.print("a\tt");
     Serial.print(millis());
@@ -135,7 +135,7 @@ void loop()
     else if (sensor_4.isActivated()) { Serial.print("\tn4\td"); Serial.print(sensor_4.getRange()); }
     else if (sensor_5.isActivated()) { Serial.print("\tn5\td"); Serial.print(sensor_5.getRange()); }
     else if (sensor_6.isActivated()) { Serial.print("\tn6\td"); Serial.print(sensor_6.getRange()); }
-    else { Serial.print("n0\td0.0"); }
+    else { Serial.print("\tn0\td0.0"); }
     Serial.print("\n");
 
     prev_ping_time = millis();

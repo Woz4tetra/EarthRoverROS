@@ -13,10 +13,10 @@
             <!-- Sensor 6: Back left behind. 6.0cm -->
             <rosparam param="activation_distances_cm">
                 [
-                    9.0,
-                    9.0,
+                    12.0,
+                    12.0,
                     8.5,
-                    8.5,
+                    0.5,
                     12.0,
                     12.0,
                 ]
