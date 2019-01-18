@@ -6,7 +6,7 @@
 
 #define TRIG_PIN   2
 // #define ECHO_PIN_1 3
-#define ECHO_PIN_1 9
+#define ECHO_PIN_1 9  // switched pins mistakenly thinking there was a hardware issue
 #define ECHO_PIN_2 4
 #define ECHO_PIN_3 5
 #define ECHO_PIN_4 6
@@ -104,7 +104,8 @@ void loop()
     if (prev_ping_time > now) {
         prev_ping_time = now;
     }
-    if (now - prev_ping_time <= 100) {
+    // setting this to 10 will cause sensor 4 to activate randomly
+    if (now - prev_ping_time <= 20) {
         return;
     }
     // Serial.println("ping!");

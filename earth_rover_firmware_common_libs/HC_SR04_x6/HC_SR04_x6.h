@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 
-// #define ECHO_TIMEOUT_US 2320  // 40cm * 58 usec/cm = 2320
-#define ECHO_TIMEOUT_US 11600  // 200cm * 58 usec/cm = 11600
+#define ECHO_TIMEOUT_US 2320  // 40cm * 58 usec/cm = 2320
+// #define ECHO_TIMEOUT_US 11600  // 200cm * 58 usec/cm = 11600
 
 class HC_SR04_x6 {
 public:
