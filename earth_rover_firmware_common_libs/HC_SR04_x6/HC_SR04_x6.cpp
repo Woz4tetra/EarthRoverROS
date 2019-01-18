@@ -38,10 +38,13 @@ void HC_SR04_x6::begin()
         case 5: attachInterrupt(_int, _static_echo_isr_5, CHANGE); break;
     }
 }
-
-void HC_SR04_x6::start()
-{
+void HC_SR04_x6::reset() {
+    _start = micros();
     _finished=false;
+}
+
+void HC_SR04_x6::ping()
+{
     digitalWrite(_trigger, HIGH);
     delayMicroseconds(10);
     digitalWrite(_trigger, LOW);

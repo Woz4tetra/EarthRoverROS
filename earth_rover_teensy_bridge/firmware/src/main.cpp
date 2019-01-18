@@ -5,7 +5,8 @@
 // minimum reliable distance: 5cm
 
 #define TRIG_PIN   2
-#define ECHO_PIN_1 3
+// #define ECHO_PIN_1 3
+#define ECHO_PIN_1 9
 #define ECHO_PIN_2 4
 #define ECHO_PIN_3 5
 #define ECHO_PIN_4 6
@@ -103,16 +104,18 @@ void loop()
     if (prev_ping_time > now) {
         prev_ping_time = now;
     }
-    if (now - prev_ping_time <= 10) {
+    if (now - prev_ping_time <= 100) {
         return;
     }
     // Serial.println("ping!");
-    sensor_1.start();
-    sensor_2.start();
-    sensor_3.start();
-    sensor_4.start();
-    sensor_5.start();
-    sensor_6.start();
+    sensor_1.reset();
+    sensor_2.reset();
+    sensor_3.reset();
+    sensor_4.reset();
+    sensor_5.reset();
+    sensor_6.reset();
+
+    sensor_1.ping();
 
     while (!sensor_1.isFinished() &&
            !sensor_2.isFinished() &&

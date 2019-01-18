@@ -3,14 +3,16 @@
 
 #include <Arduino.h>
 
-#define ECHO_TIMEOUT_US 2320  // 40cm * 58 usec/cm = 2320
+// #define ECHO_TIMEOUT_US 2320  // 40cm * 58 usec/cm = 2320
+#define ECHO_TIMEOUT_US 11600  // 200cm * 58 usec/cm = 11600
 
 class HC_SR04_x6 {
 public:
     HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float activation_dist=10.0);
 
     void begin();
-    void start();
+    void reset();
+    void ping();
     bool isFinished();
     float getRange();
 
