@@ -8,10 +8,12 @@ HC_SR04_x6 *HC_SR04_x6::_instance3(NULL);
 HC_SR04_x6 *HC_SR04_x6::_instance4(NULL);
 HC_SR04_x6 *HC_SR04_x6::_instance5(NULL);
 
-HC_SR04_x6::HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float max_dist, bool use_cm, float activation_dist)
+HC_SR04_x6::HC_SR04_x6(int trigger, int echo, int interrupt, int instance_index, float activation_dist)
 : _trigger(trigger), _echo(echo), _int(interrupt), _instance_index(instance_index), _activation_dist(activation_dist),
-  _max(max_dist), _use_cm(use_cm), _finished(false)
+  _finished(false), _cancelled(false)
 {
+    _max = _durationToUnits(ECHO_TIMEOUT_US);
+
     switch (instance_index) {
         case 0: if (_instance0 == 0) _instance0 = this; break;
         case 1: if (_instance1 == 0) _instance1 = this; break;
@@ -46,7 +48,7 @@ void HC_SR04_x6::start()
 }
 
 float HC_SR04_x6::_durationToUnits(unsigned long duration) {
-    return (float)(duration) / ((_use_cm) ? 58.0:148.0);
+    return (float)(duration) / 58.0;
 }
 
 float HC_SR04_x6::getRange()
@@ -69,8 +71,10 @@ void HC_SR04_x6::setActDist(float activation_dist) {
 
 bool HC_SR04_x6::isFinished()
 {
-    if (!_finished && micros() - _start > ECHO_TIMEOUT_US) {
-        return true;
+    if (micros() - _start > ECHO_TIMEOUT_US) {
+        _finished = true;
+        _cancelled = true;
+        _end = ECHO_TIMEOUT_US + _start;
     }
     return _finished;
 }
@@ -79,11 +83,14 @@ void HC_SR04_x6::echo_isr()
 {
     switch(digitalRead(_echo)){
         case HIGH:
-            _start=micros();
+            _start = micros();
+            _cancelled = false;
             break;
         case LOW:
-            _end=micros();
-            _finished=true;
+            if (!_cancelled) {
+                _end = micros();
+                _finished = true;
+            }
             break;
     }
 }

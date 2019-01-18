@@ -129,6 +129,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/${PROJECT_NAME}/${PROJECT_NAME}.cpp
+   src/${PROJECT_NAME}/SensorStateMachine.cpp
 )
 
 ## Add cmake target dependencies of the library

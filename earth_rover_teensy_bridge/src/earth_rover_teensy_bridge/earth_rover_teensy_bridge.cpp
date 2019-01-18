@@ -46,6 +46,8 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDists, this);
 
     guard_lock_msg.data = false;
+    activated_sensor = 0;
+    activated_dist = 0.0;
 
     sensor_states = new vector<SensorStateMachine>();
     ROS_ASSERT_MSG(xml_parsed_activation_distances.size() == 6, "Need 6 activation distances. %d were supplied", xml_parsed_activation_distances.size());
@@ -149,18 +151,19 @@ int EarthRoverTeensyBridge::run()
 
 void EarthRoverTeensyBridge::checkGuardState()
 {
-    bool guard_set = false;
-
-    for (size_t i = 0; i < sensor_states->size(); i++) {
-        if (activated_sensor == i + 1) {
-            guard_lock_msg.data = sensor_states->at(i).update(activated_dist);
-        }
-        else {
-            sensor_states->at(i).set_to_waiting();
-        }
-    }
+    // for (size_t i = 0; i < sensor_states->size(); i++) {
+    //     if (activated_sensor == i + 1) {
+    //         guard_lock_msg.data = sensor_states->at(i).update(activated_dist);
+    //     }
+    //     else {
+    //         sensor_states->at(i).set_to_waiting();
+    //     }
+    // }
     if (activated_sensor == 0) {
         guard_lock_msg.data = false;
+    }
+    else {
+        guard_lock_msg.data = sensor_states->at(activated_sensor - 1).update(activated_dist);
     }
 
     guard_lock_pub.publish(guard_lock_msg);
@@ -213,21 +216,22 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
 
 void EarthRoverTeensyBridge::writeActivationDists()
 {
-    for (size_t index = 0; index < activation_distances->size(); index++) {
+    for (size_t index = 0; index < sensor_states->size(); index++) {
         // format message to look like d0\t0.000\n  d[sensor index]\t[activation distance]\n
-        serial_ref.write(boost::str(boost::format("d%d\t%0.3f\n") % (index + 1) % activation_distances->at(index)));
+        double dist = sensor_states->at(index).get_act_dist();
+        serial_ref.write(boost::str(boost::format("d%d\t%0.3f\n") % (index + 1) % dist));
     }
 }
 
 bool EarthRoverTeensyBridge::setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res)
 {
     // if activation distance is negative, skip setting it.
-    if (req.dist1 >= 0.0) (*activation_distances)[0] = req.dist1;
-    if (req.dist2 >= 0.0) (*activation_distances)[1] = req.dist2;
-    if (req.dist3 >= 0.0) (*activation_distances)[2] = req.dist3;
-    if (req.dist4 >= 0.0) (*activation_distances)[3] = req.dist4;
-    if (req.dist5 >= 0.0) (*activation_distances)[4] = req.dist5;
-    if (req.dist6 >= 0.0) (*activation_distances)[5] = req.dist6;
+    if (req.dist1 >= 0.0) sensor_states->at(0).set_act_dist(req.dist1);
+    if (req.dist2 >= 0.0) sensor_states->at(1).set_act_dist(req.dist2);
+    if (req.dist3 >= 0.0) sensor_states->at(2).set_act_dist(req.dist3);
+    if (req.dist4 >= 0.0) sensor_states->at(3).set_act_dist(req.dist4);
+    if (req.dist5 >= 0.0) sensor_states->at(4).set_act_dist(req.dist5);
+    if (req.dist6 >= 0.0) sensor_states->at(5).set_act_dist(req.dist6);
 
     writeActivationDists();
 

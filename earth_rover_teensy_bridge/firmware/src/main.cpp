@@ -12,6 +12,8 @@
 #define ECHO_PIN_5 7
 #define ECHO_PIN_6 8
 
+#define LED_PIN    13
+
 #define NUM_SENSORS 6
 
 // the "zeroth" sensor means no sensors are activated
@@ -44,6 +46,8 @@ void setup()
     manager.writeReady();
 
     prev_ping_time = millis();
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);
 }
 
 void loop()
@@ -99,7 +103,7 @@ void loop()
     if (prev_ping_time > now) {
         prev_ping_time = now;
     }
-    if (now - prev_ping_time <= 12) {
+    if (now - prev_ping_time <= 10) {
         return;
     }
     // Serial.println("ping!");
