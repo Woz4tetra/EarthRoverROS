@@ -12,6 +12,7 @@
 #include "boost/format.hpp"
 
 #include "earth_rover_teensy_bridge/ActivationDistances.h"
+#include "earth_rover_teensy_bridge/SensorStateMachine.h"
 
 using namespace std;
 using namespace earth_rover_teensy_bridge;
@@ -19,8 +20,6 @@ using namespace earth_rover_teensy_bridge;
 // string parsing macros
 #define STR_TO_FLOAT(string)  strtof((string).c_str(), 0)
 #define STR_TO_INT(string) string_to_int64(string)
-
-enum ActivationStates { ACTIVATED, WAITING, STALE };
 
 class EarthRoverTeensyBridge {
 private:
@@ -31,7 +30,6 @@ private:
     serial::Serial serial_ref;
 
     XmlRpc::XmlRpcValue xml_parsed_activation_distances;
-    vector<double>* activation_distances;
 
     string guard_lock_topic;
     string guard_topic;
@@ -53,15 +51,11 @@ private:
     void writeActivationDists();
     bool setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res);
 
-    int activated_sensor;
-    int prev_activated_sensor;
-    double activated_distance;
-    double prev_distance;
-    ros::Time activation_time;
-    ros::Duration activation_timeout;
-    ActivationStates activation_state;
-
     void checkGuardState();
+
+    int activated_sensor;
+    double activated_dist;
+    vector<SensorStateMachine>* sensor_states;
 
 public:
     EarthRoverTeensyBridge(ros::NodeHandle* nodehandle);

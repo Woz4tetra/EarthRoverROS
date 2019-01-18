@@ -46,20 +46,16 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDists, this);
 
     guard_lock_msg.data = false;
-    prev_distance = -1.0;
-    prev_activated_sensor = -1;
-    activated_sensor = 0;
-    activated_distance = 0.0;
-    activation_state = WAITING;
-    activation_timeout = ros::Duration(activation_timeout_double);
 
-    activation_distances = new vector<double>();
+    sensor_states = new vector<SensorStateMachine>();
     ROS_ASSERT_MSG(xml_parsed_activation_distances.size() == 6, "Need 6 activation distances. %d were supplied", xml_parsed_activation_distances.size());
     for (int index = 0; index < xml_parsed_activation_distances.size(); index++)
     {
         double dist = (double)xml_parsed_activation_distances[index];
-        activation_distances->push_back(dist);
-        ROS_INFO("activation distance for #%d: %fcm", index + 1, activation_distances->at(index));
+        SensorStateMachine s(dist, activation_timeout_double);
+
+        sensor_states->push_back(s);
+        ROS_INFO("activation distance for #%d: %fcm", index + 1, dist);
     }
 
     ROS_INFO("Earth Rover Teensy bridge init done");
@@ -104,6 +100,8 @@ int EarthRoverTeensyBridge::run()
         return -1;
     }
 
+    ros::Rate clock_rate(120);  // Hz, must be faster than microcontroller's write rate
+
     ros::Duration(0.25).sleep();
     serial_ref.write(READY_ASK_COMMAND);
     ros::Duration(0.01).sleep();
@@ -112,8 +110,6 @@ int EarthRoverTeensyBridge::run()
     }
 
     serial_ref.write(START_COMMAND);
-
-    ros::Rate clock_rate(120);  // Hz
 
     writeActivationDists();
 
@@ -143,12 +139,6 @@ int EarthRoverTeensyBridge::run()
             }
         }
 
-        // ros::Time now = ros::Time::now();
-        // if (now - prev_time > ros::Duration(1.0 / 30.0))  // publish lock at 30Hz
-        // {
-        //     prev_time = now;
-        //     checkGuardState();
-        // }
         checkGuardState();
     }
 
@@ -159,47 +149,20 @@ int EarthRoverTeensyBridge::run()
 
 void EarthRoverTeensyBridge::checkGuardState()
 {
-    ros::Time now = ros::Time::now();
-    // if the guard has been triggered, wait [activation_timeout] seconds before proceeding to check state
-    if (activation_state != ACTIVATED || now - activation_time >= activation_timeout) {
-        // if a sensor activated
-        if (activated_sensor != 0) {
-            // if a different sensor activated, reset state machine
-            if (prev_activated_sensor != activated_sensor) {
-                prev_activated_sensor = activated_sensor;
-                ROS_INFO("Activated sensor switched");
-                prev_distance = -1.0;
-            }
+    bool guard_set = false;
 
-            // if this is the first encounter with this activation or if the detected distance is increasing,
-            // throw the guard
-            ROS_INFO("prev dist: %f, act dist: %f", prev_distance, activated_distance);
-            if (prev_distance < 0 || activated_distance < prev_distance) {
-                activation_state = ACTIVATED;
-                activation_time = now;
-                prev_distance = activated_distance - 0.5;  // add a small buffer to account for sensor noise
-                if (prev_distance < 0.0) {
-                    prev_distance = 0.0;
-                }
-                ROS_INFO("ACTIVATED. prev dist: %f, act dist: %f", prev_distance, activated_distance);
-            }
-            // if the robot is backing away or still, this activation is stale and should be ignored.
-            else if (activated_distance >= prev_distance) {
-                activation_state = STALE;
-                ROS_INFO("STALE");
-            }
+    for (size_t i = 0; i < sensor_states->size(); i++) {
+        if (activated_sensor == i + 1) {
+            guard_lock_msg.data = sensor_states->at(i).update(activated_dist);
         }
-
-        // if no sensors are activated, wait for an activation
         else {
-            activation_state = WAITING;
-            // prev_distance = -1.0;
-            ROS_INFO("WAITING");
+            sensor_states->at(i).set_to_waiting();
         }
     }
+    if (activated_sensor == 0) {
+        guard_lock_msg.data = false;
+    }
 
-    // only throw the guard if state is ACTIVATED
-    guard_lock_msg.data = activation_state == ACTIVATED;
     guard_lock_pub.publish(guard_lock_msg);
 
     if (guard_lock_msg.data) {  // if is guarded, publish zero velocity commands
@@ -228,7 +191,7 @@ void EarthRoverTeensyBridge::parseActDistMessage()
     parseActDistToken(serial_buffer);  // remaining buffer is the last token (has newline removed)
 
     if (activated_sensor != 0) {
-        ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activated_distance);
+        ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activated_dist);
     }
 }
 
@@ -238,12 +201,9 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
         case 't': ROS_DEBUG("earth rover teensy time: %s", token.substr(1).c_str()); break;
         case 'n':
             activated_sensor = STR_TO_INT(token.substr(1));
-            // if (activated_sensor != 0) {
-            //     activation_time = ros::Time::now();
-            // }
             break;
         case 'd':
-            activated_distance = STR_TO_FLOAT(token.substr(1));
+            activated_dist = STR_TO_FLOAT(token.substr(1));
             break;
         default:
             ROS_WARN("Invalid segment type for earth rover teensy bridge! Segment: '%c', packet: '%s'", serial_buffer.at(0), serial_buffer.c_str());
