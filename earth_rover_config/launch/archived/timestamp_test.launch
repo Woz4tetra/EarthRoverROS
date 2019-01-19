@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <param name="time" command="$(find earth_rover_config)/scripts/timestamp.sh" />
+    <arg name="path" default="$(param start_time)" />
+</launch>
