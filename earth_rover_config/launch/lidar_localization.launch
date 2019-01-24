@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <arg name="rplidar_namespace" default="rplidar" />
-    <arg name="map_name" default="map.yaml" />
+    <arg name="map_name" default="map" />
     <arg name="map_path" default="$(find earth_rover_config)/maps/$(arg map_name)" />
-    <arg name="create_map" default="true" />
 
-    <include file="$(find earth_rover_ekf_formatter)/launch/earth_rover_ekf_formatter.launch"></include>
+    <node name="map_server" pkg="map_server" type="map_saver" output="screen" args="-f $(arg map_path)"/>
+    <!-- <include file="$(find earth_rover_ekf_formatter)/launch/earth_rover_ekf_formatter.launch"></include> -->
 
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
         <remap from="scan" to="/$(arg rplidar_namespace)/scan"/>
@@ -57,7 +57,5 @@
         </rosparam>
     </node>
 
-    <node if="$(arg create_map)" name="map_server" pkg="map_server" type="map_saver" output="screen" args="$(arg map_path)"/>
-    <node unless="$(arg create_map)" name="map_server" pkg="map_server" type="map_server" output="screen" args="$(arg map_path)"/>
 
 </launch>

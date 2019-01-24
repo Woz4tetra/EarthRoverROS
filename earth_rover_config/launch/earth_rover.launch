@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+    <arg name="create_map" default="true" />
+    <arg name="map_name" value="map" />
+    <arg name="map_path" value="$(find earth_rover_config)/maps/$(arg map_name)" />
+
     <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch">
         <arg name="led_control_left_start_command"   value="w" />
         <arg name="led_control_right_start_command"   value="w" />
@@ -22,7 +26,8 @@
     <include file="$(find earth_rover_config)/launch/sensors.launch"></include>
     <include file="$(find earth_rover_config)/launch/static_transforms.launch"></include>
     <!-- <include file="$(find earth_rover_config)/launch/rtabmap_localization.launch"></include> -->
-    <include file="$(find earth_rover_config)/launch/lidar_localization.launch"></include>
+    <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/lidar_localization.launch"></include>
+    <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch"></include>
     <!-- <include file="$(find earth_rover_config)/launch/cartographer_localization.launch"></include> -->
     <include file="$(find earth_rover_config)/launch/costmap.launch"></include>
 

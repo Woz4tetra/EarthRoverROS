@@ -9,5 +9,4 @@
     <node name="costmap_node" pkg="costmap_2d" type="costmap_2d_node" >
         <rosparam file="$(find earth_rover_config)/configuration_files/costmap_config.yaml" command="load" ns="earth_rover" />
     </node>
-
 </launch>
