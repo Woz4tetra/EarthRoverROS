@@ -6,6 +6,7 @@
 
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Twist.h"
+#include "nav_msgs/Odometry.h"
 
 #include <iostream>
 #include <sstream>
@@ -36,11 +37,18 @@ private:
     ros::Publisher guard_lock_pub;
     ros::Publisher guard_pub;
 
+    string odom_topic_name;
+    ros::Subscriber odom_sub;
+
     std_msgs::Bool guard_lock_msg;
     geometry_msgs::Twist guard_msg;
 
     string act_dist_service_name;
     ros::ServiceServer act_dist_service;
+
+    double odom_angular_speed, odom_linear_velocity;
+    double min_angular_activation_speed, min_linear_activation_speed;
+    bool is_moving;
 
     // Wait for the packet header specified with a timeout
     bool waitForPacket(const string packet);
@@ -48,10 +56,13 @@ private:
     void parseActDistToken(string token);
     void parseActDistMessage();
 
+    void odom_callback(const nav_msgs::Odometry& odom_msg);
+
     void writeActivationDists();
     bool setActivationDists(ActivationDistances::Request &req, ActivationDistances::Response &res);
 
     void checkGuardState();
+    void checkVelocityDirection();
 
     int activated_sensor;
     double activated_dist;
