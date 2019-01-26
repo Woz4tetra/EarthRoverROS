@@ -25,10 +25,10 @@
     <include file="$(find earth_rover_config)/launch/chassis_mux.launch"></include>
     <include file="$(find earth_rover_config)/launch/sensors.launch"></include>
     <include file="$(find earth_rover_config)/launch/static_transforms.launch"></include>
-    <!-- <include file="$(find earth_rover_config)/launch/rtabmap_localization.launch"></include> -->
     <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/lidar_localization.launch"></include>
     <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch"></include>
-    <!-- <include file="$(find earth_rover_config)/launch/cartographer_localization.launch"></include> -->
     <include file="$(find earth_rover_config)/launch/costmap.launch"></include>
 
+    <!-- <include file="$(find earth_rover_config)/launch/rtabmap_localization.launch"></include> -->
+    <!-- <include file="$(find earth_rover_config)/launch/cartographer_localization.launch"></include> -->
 </launch>

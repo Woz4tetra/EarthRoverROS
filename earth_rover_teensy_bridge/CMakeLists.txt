@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   serial
   message_generation
+  tf
 )
 roslaunch_add_file_check(launch)
 
@@ -109,7 +110,7 @@ generate_messages(
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES earth_rover_teensy_bridge
-    CATKIN_DEPENDS geometry_msgs roscpp roslaunch sensor_msgs serial
+    CATKIN_DEPENDS geometry_msgs roscpp roslaunch sensor_msgs serial tf
     # DEPENDS system_lib
 )
 

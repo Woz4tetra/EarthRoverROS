@@ -4,6 +4,7 @@
         <node name="earth_rover_teensy_bridge" pkg="earth_rover_teensy_bridge" type="earth_rover_teensy_bridge_node" required="true" output="screen">
             <param name="serial_port" type="string" value="/dev/serial/by-id/usb-Teensyduino_USB_Serial_4989760-if00"/>
             <param name="serial_baud" type="int" value="115200"/>
+            <param name="cmd_vel_topic_name" type="str" value="/earth_rover/cmd_vel"/>
 
             <!-- Sensor 1: Front right. 3.0cm -->
             <!-- Sensor 2: Front left. 3.0cm -->
@@ -15,8 +16,8 @@
                 [
                     14.0,
                     14.0,
-                    15.0,
-                    15.0,
+                    10.0,
+                    10.0,
                     14.0,
                     14.0,
                 ]

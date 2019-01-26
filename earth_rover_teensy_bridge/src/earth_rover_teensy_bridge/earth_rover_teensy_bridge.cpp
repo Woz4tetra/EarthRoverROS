@@ -33,10 +33,10 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     nh.param<string>("act_dist_service_name", act_dist_service_name, "set_guard_distances");
     nh.param<string>("guard_lock_topic", guard_lock_topic, "dist_guard_lock");
     nh.param<string>("guard_topic", guard_topic, "dist_guard");
-    nh.param<string>("odom_topic_name", odom_topic_name, "odom");
+    nh.param<string>("cmd_vel_topic_name", cmd_vel_topic_name, "cmd_vel");
     nh.param<double>("activation_timeout", activation_timeout_double, 0.5);
-    nh.param<double>("min_angular_activation_speed", min_angular_activation_speed, 0.15);
-    nh.param<double>("min_linear_activation_speed", min_linear_activation_speed, 0.07);
+    nh.param<double>("min_angular_activation_speed", min_angular_activation_speed, 0.05);
+    nh.param<double>("min_linear_activation_speed", min_linear_activation_speed, 0.02);
     nh.param("activation_distances_cm", xml_parsed_activation_distances, xml_parsed_activation_distances);
 
     // ROS_INFO("serial_port: %s", serial_port.c_str());
@@ -48,15 +48,15 @@ EarthRoverTeensyBridge::EarthRoverTeensyBridge(ros::NodeHandle* nodehandle):
     guard_pub = nh.advertise<geometry_msgs::Twist>(guard_topic, 50);
     act_dist_service = nh.advertiseService(act_dist_service_name, &EarthRoverTeensyBridge::setActivationDists, this);
 
-    odom_sub = nh.subscribe(odom_topic_name, 5, &EarthRoverTeensyBridge::odom_callback, this);
+    // cmd_vel_sub = nh.subscribe(cmd_vel_topic_name, 5, &EarthRoverTeensyBridge::cmd_vel_callback, this);
 
     guard_lock_msg.data = false;
     activated_sensor = 0;
     activated_dist = 0.0;
 
     is_moving = false;
-    odom_angular_speed = 0.0;
-    odom_linear_velocity = 0.0;
+    cmd_angular_speed = 0.0;
+    cmd_linear_velocity = 0.0;
 
     sensor_states = new vector<SensorStateMachine>();
     ROS_ASSERT_MSG(xml_parsed_activation_distances.size() == 6, "Need 6 activation distances. %d were supplied", xml_parsed_activation_distances.size());
@@ -88,13 +88,13 @@ bool EarthRoverTeensyBridge::waitForPacket(const string ask_packet, const string
         if (serial_ref.available())
         {
             serial_buffer += serial_ref.read(1);
-            if (serial_buffer.back() == '\n') {
+            if (*serial_buffer.rbegin() == '\n') {
                 ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
                 if (serial_buffer.compare(response_packet) == 0) {
                     ROS_INFO(
-                        "Earth Rover Teensy sent '%s'",
-                        response_packet.substr(0, response_packet.length() - 1).c_str()
+                        "%s sent '%s'",
+                        serial_port.c_str(), response_packet.substr(0, response_packet.length() - 1).c_str()
                     );
                     return true;
                 }
@@ -108,7 +108,7 @@ bool EarthRoverTeensyBridge::waitForPacket(const string ask_packet, const string
             now = prev_write_time;
 
             serial_ref.write(ask_packet);
-            ROS_INFO("Earth Rover Teensy sending ask packet '%s' again", ask_packet);
+            ROS_INFO("Earth Rover sending ask packet '%s' again to %s", ask_packet.c_str(), serial_port.c_str());
         }
 
         now = ros::Time::now();
@@ -116,8 +116,8 @@ bool EarthRoverTeensyBridge::waitForPacket(const string ask_packet, const string
     }
 
     ROS_ERROR(
-        "Timeout reached. Serial buffer didn't contain '%s', buffer: %s",
-        packet.c_str(), serial_buffer.c_str()
+        "Timeout reached. Serial buffer didn't contain '%s', buffer: %s for port %s",
+        response_packet.c_str(), serial_buffer.c_str(), serial_port.c_str()
     );
     return false;
 }
@@ -151,6 +151,8 @@ int EarthRoverTeensyBridge::run()
     writeActivationDists();
 
     ros::Time prev_msg_time = ros::Time::now();
+    int prev_activated_sensor = -1;
+
     ros::Time now = ros::Time::now();
     while (ros::ok())
     {
@@ -180,32 +182,16 @@ int EarthRoverTeensyBridge::run()
         checkGuardState();
 
         now = ros::Time::now();
-        if (activated_sensor != 0 && now - prev_msg_time > ros::Duration(0.25)) {
+        if (activated_sensor != 0 && (activated_sensor != prev_activated_sensor || now - prev_msg_time > ros::Duration(0.25))) {
             ROS_INFO("Sensor #%d activated with dist %0.3f", activated_sensor, activated_dist);
             prev_msg_time = now;
+            prev_activated_sensor = activated_sensor;
         }
     }
 
     serial_ref.write(STOP_COMMAND);
 
     return 0;
-}
-
-void EarthRoverTeensyBridge::checkVelocityDirection()
-{
-    return (
-        // if front sensors activated and robot is moving forward
-        ((activated_sensor == 1 || activated_sensor == 2) && odom_linear_velocity > 0.0) ||
-
-        // if right side sensor activated and robot is rotating right
-        (activated_sensor == 3 && odom_angular_speed < 0.0) ||
-
-        // if left side sensor activated and robot is rotating left
-        (activated_sensor == 4 && odom_angular_speed > 0.0) ||
-
-        // if back sensors activated and robot is moving backward
-        ((activated_sensor == 5 || activated_sensor == 6) && odom_linear_velocity < 0.0)
-    );
 }
 
 void EarthRoverTeensyBridge::checkGuardState()
@@ -221,10 +207,11 @@ void EarthRoverTeensyBridge::checkGuardState()
     if (activated_sensor == 0) {
         guard_lock_msg.data = false;
     }
-    else if (checkVelocityDirection())
-    {
+    else {
         // update distance sensor state machine and determine whether to throw the guard
-        guard_lock_msg.data = sensor_states->at(activated_sensor - 1).update(activated_dist);
+        guard_lock_msg.data = sensor_states->at(activated_sensor - 1).update(
+            activated_dist //, cmd_linear_velocity, cmd_angular_speed
+        );
     }
 
     guard_lock_pub.publish(guard_lock_msg);
@@ -274,31 +261,25 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
     }
 }
 
-void EarthRoverTeensyBridge::odom_callback(const nav_msgs::Odometry& odom_msg)
+void EarthRoverTeensyBridge::cmd_vel_callback(const geometry_msgs::Twist& cmd_vel_msg)
 {
-    double vx = odom_msg.twist.twist.linear.x;
-    odom_angular_speed = odom_msg.twist.twist.angular.z;
-
-    if (fabs(angular_speed) <= min_angular_activation_speed) {
-        odom_angular_speed = 0.0;
+    if (cmd_vel_msg.linear.x != 0.0) {
+        cmd_linear_velocity = cmd_vel_msg.linear.x;
+        ROS_INFO("linear: %f", cmd_linear_velocity);
     }
 
-    const tf::Quaternion q(
-        odom_msg.pose.pose.orientation.w,
-        odom_msg.pose.pose.orientation.x,
-        odom_msg.pose.pose.orientation.y,
-        odom_msg.pose.pose.orientation.z
-    );
-    const tf::Matrix3x3 rotation_mat(q);
-    tfScalar yaw, pitch, roll;
-    rotation_mat.getEulerYPR(yaw, pitch, roll, 1);
-
-    // double linear_speed = sqrt(vx * vx + vy * vy);  // linear speed without +/- direction
-    odom_linear_velocity = vx / cos(yaw); // linear velocity
-
-    if (fabs(odom_linear_velocity) <= min_linear_activation_speed) {
-        odom_linear_velocity = 0.0;
+    if (cmd_vel_msg.angular.z != 0.0) {
+        cmd_angular_speed = cmd_vel_msg.angular.z;
+        ROS_INFO("angular: %f", cmd_angular_speed);
     }
+
+    // if (fabs(cmd_angular_speed) <= min_angular_activation_speed) {
+    //     cmd_angular_speed = 0.0;
+    // }
+    //
+    // if (fabs(cmd_linear_velocity) <= min_linear_activation_speed) {
+    //     cmd_linear_velocity = 0.0;
+    // }
 }
 
 void EarthRoverTeensyBridge::writeActivationDists()

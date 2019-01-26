@@ -34,7 +34,7 @@ private:
     ros::ServiceServer led_control_service;
 
     // Wait for the packet header specified with a timeout
-    bool waitForPacket(const string packet);
+    bool waitForPacket(const string ask_packet, const string response_packet);
 
     std_msgs::Int64 encoder_msg;
     void parseToken(string token);
@@ -49,6 +49,7 @@ public:
     static const string PACKET_END;  // character that every packet ends with
     static const string HELLO_MESSAGE;  // the message to expect when the microcontroller starts up
     static const string READY_MESSAGE;  // message signalling that the microcontroller is ready to receive commands
+    static const string READY_ASK_COMMAND;
     static const string START_COMMAND;  // packet to send to the microcontroller to tell it to start
     static const string STOP_COMMAND;  // packet to send to the microcontroller to tell it to stop
     static const string MESSAGE_DELIMITER;

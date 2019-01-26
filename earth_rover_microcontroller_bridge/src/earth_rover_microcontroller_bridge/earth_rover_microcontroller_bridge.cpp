@@ -8,6 +8,7 @@ const string EarthRoverMicroControllerBridge::PACKET_END = "\n";
 
 const string EarthRoverMicroControllerBridge::HELLO_MESSAGE = "hello!" + PACKET_END;
 const string EarthRoverMicroControllerBridge::READY_MESSAGE = "ready!" + PACKET_END;
+const string EarthRoverMicroControllerBridge::READY_ASK_COMMAND = "r" + PACKET_END;
 const string EarthRoverMicroControllerBridge::START_COMMAND = "g" + PACKET_END;
 const string EarthRoverMicroControllerBridge::STOP_COMMAND = "s" + PACKET_END;
 const string EarthRoverMicroControllerBridge::MESSAGE_DELIMITER = "\t";
@@ -45,25 +46,53 @@ EarthRoverMicroControllerBridge::EarthRoverMicroControllerBridge(ros::NodeHandle
     ROS_INFO("Earth Rover Arduino bridge init done");
 }
 
-bool EarthRoverMicroControllerBridge::waitForPacket(const string packet)
+bool EarthRoverMicroControllerBridge::waitForPacket(const string ask_packet, const string response_packet)
 {
+    serial_ref.write(ask_packet);
+    ros::Duration(0.01).sleep();
+
     ros::Time begin = ros::Time::now();
-    ros::Duration timeout = ros::Duration(5.0);
+    ros::Time now = ros::Time::now();
+    ros::Time prev_write_time = ros::Time::now();
 
-    while ((ros::Time::now() - begin) < timeout)
+    serial_buffer = "";
+
+    while ((now - begin) < ros::Duration(10.0))
     {
-        if (serial_ref.available()) {
-            serial_buffer = serial_ref.readline();
-            ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+        if (serial_ref.available())
+        {
+            serial_buffer += serial_ref.read(1);
+            if (*serial_buffer.rbegin() == '\n') {
+                ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
-            if (serial_buffer.compare(packet) == 0) {
-                ROS_INFO("Earth Rover Arduino sent '%s'", packet.substr(0, packet.length() - 1).c_str());
-                return true;
+                if (serial_buffer.compare(response_packet) == 0) {
+                    ROS_INFO(
+                        "%s sent '%s'",
+                        serial_port.c_str(), response_packet.substr(0, response_packet.length() - 1).c_str()
+                    );
+                    return true;
+                }
+
+                serial_buffer = "";
             }
+            // serial_buffer = serial_ref.readline();
         }
+
+        if (now - prev_write_time > ros::Duration(2.0)) {
+            now = prev_write_time;
+
+            serial_ref.write(ask_packet);
+            ROS_INFO("Earth Rover sending ask packet '%s' again to %s", ask_packet.c_str(), serial_port.c_str());
+        }
+
+        now = ros::Time::now();
+        ros::Duration(0.005).sleep();  // give the CPU a break
     }
 
-    ROS_ERROR("Timeout reached. Serial buffer didn't contain '%s', buffer: %s", packet.c_str(), serial_buffer.c_str());
+    ROS_ERROR(
+        "Timeout reached. Serial buffer didn't contain '%s', buffer: %s for port %s",
+        response_packet.c_str(), serial_buffer.c_str(), serial_port.c_str()
+    );
     return false;
 }
 
@@ -84,10 +113,8 @@ int EarthRoverMicroControllerBridge::run()
         return -1;
     }
 
-    if (!waitForPacket(HELLO_MESSAGE)) {
-        return 1;
-    }
-    if (!waitForPacket(READY_MESSAGE)) {
+    ros::Duration(0.25).sleep();
+    if (!waitForPacket(READY_ASK_COMMAND, READY_MESSAGE)) {
         return 1;
     }
 
