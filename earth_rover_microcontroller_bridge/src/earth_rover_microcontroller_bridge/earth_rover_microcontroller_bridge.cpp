@@ -63,7 +63,7 @@ bool EarthRoverMicroControllerBridge::waitForPacket(const string ask_packet, con
         {
             serial_buffer += serial_ref.read(1);
             if (*serial_buffer.rbegin() == '\n') {
-                ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+                // ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
                 if (serial_buffer.compare(response_packet) == 0) {
                     ROS_INFO(
@@ -140,7 +140,7 @@ int EarthRoverMicroControllerBridge::run()
                 continue;
             }
 
-            ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+            // ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
             // Parse encoder segment
             if (serial_buffer.length() > ENCODER_MESSAGE_HEADER.size() &&
@@ -178,10 +178,11 @@ void EarthRoverMicroControllerBridge::parseEncoderMessage()
 void EarthRoverMicroControllerBridge::parseToken(string token)
 {
     switch (token.at(0)) {
-        case 't': ROS_DEBUG("earth rover arduino time: %s", token.substr(1).c_str()); break;
+        // case 't': ROS_DEBUG("earth rover arduino time: %s", token.substr(1).c_str()); break;
+        case 't': break;
         case 'p':
             encoder_msg.data = STR_TO_INT(token.substr(1));
-            ROS_DEBUG("encoder_msg: %li", encoder_msg.data);
+            // ROS_DEBUG("encoder_msg: %li", encoder_msg.data);
 
             encoder_pub.publish(encoder_msg);
             break;

@@ -60,6 +60,9 @@ float HC_SR04_x6::getRange()
     if (result > _max) {
         result = _max;
     }
+    if (result < _activation_dist - 1.0) {
+        result = _activation_dist - 1.0;
+    }
     return result;
 }
 

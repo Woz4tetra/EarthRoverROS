@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="rplidar_namespace"		    default="rplidar" />
+    <node pkg="tf" type="static_transform_publisher" name="laser_to_base" args="0.0802 0.0 0.17068 1 0 0 0 base_link laser 100" />
+
+    <group ns="$(arg rplidar_namespace)">
+        <node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen" required="true">
+            <param name="serial_port"         type="string" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"/>
+            <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+            <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
+            <param name="frame_id"            type="string" value="laser"/>
+            <param name="inverted"            type="bool"   value="false"/>
+            <param name="angle_compensate"    type="bool"   value="true"/>
+        </node>
+    </group>
+</launch>

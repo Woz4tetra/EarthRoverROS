@@ -89,7 +89,7 @@ bool EarthRoverTeensyBridge::waitForPacket(const string ask_packet, const string
         {
             serial_buffer += serial_ref.read(1);
             if (*serial_buffer.rbegin() == '\n') {
-                ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+                // ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
                 if (serial_buffer.compare(response_packet) == 0) {
                     ROS_INFO(
@@ -170,7 +170,7 @@ int EarthRoverTeensyBridge::run()
                 continue;
             }
 
-            ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+            // ROS_DEBUG("buffer: %s", serial_buffer.c_str());
 
             // Parse encoder segment
             if (serial_buffer.length() > ACTIVATE_MESSAGE_HEADER.size() &&
@@ -245,7 +245,8 @@ void EarthRoverTeensyBridge::parseActDistMessage()
 void EarthRoverTeensyBridge::parseActDistToken(string token)
 {
     switch (token.at(0)) {
-        case 't': ROS_DEBUG("earth rover teensy time: %s", token.substr(1).c_str()); break;
+        // case 't': ROS_DEBUG("earth rover teensy time: %s", token.substr(1).c_str()); break;
+        case 't': break;
         case 'n':
             activated_sensor = STR_TO_INT(token.substr(1));
             break;
