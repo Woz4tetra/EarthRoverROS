@@ -27,7 +27,6 @@ HC_SR04_x6 sensor_6(TRIG_PIN, ECHO_PIN_6, digitalPinToInterrupt(ECHO_PIN_6), 5);
 
 uint32_t prev_ping_time = 0;
 uint32_t now = 0;
-size_t num_act_dists_received = 0;
 
 SerialManager manager;
 
@@ -60,43 +59,22 @@ void loop()
         if (status == 2)  // start event
         {
             prev_ping_time = millis();
+            Serial.print("u\tt");
+            Serial.print(millis());
+            Serial.print("\tl6");
+            Serial.print("\n");
         }
         // else if (status == 1)  // stop event
         // {
         //
         // }
-        else if (status == 0)  // user command
-        {
-            if (command.charAt(0) == 'd') {
-                if (num_act_dists_received < NUM_SENSORS) {
-                    num_act_dists_received++;
-                }
-
-                int index = command.substring(1, 2).toInt();
-                float activation_dist = command.substring(3).toFloat();
-                switch (index) {
-                    case 1: sensor_1.setActDist(activation_dist); break;
-                    case 2: sensor_2.setActDist(activation_dist); break;
-                    case 3: sensor_3.setActDist(activation_dist); break;
-                    case 4: sensor_4.setActDist(activation_dist); break;
-                    case 5: sensor_5.setActDist(activation_dist); break;
-                    case 6: sensor_6.setActDist(activation_dist); break;
-                    default: Serial.print("-Invalid sensor number: "); Serial.println(index);
-                }
-            }
-        }
+        // else if (status == 0)  // user command
+        // {
+        //
+        // }
     }
 
     if (manager.isPaused()) {
-        return;
-    }
-
-    // don't proceed until activation distances have been sent
-    if (num_act_dists_received < NUM_SENSORS) {
-        Serial.print("a\tt");
-        Serial.print(millis());
-        Serial.print("\n");
-        delay(100);
         return;
     }
 
@@ -127,23 +105,14 @@ void loop()
        delayMicroseconds(100);
     }
 
-    // Serial.print("-1: "); Serial.print(sensor_1.getRange());
-    // Serial.print("\t2: "); Serial.print(sensor_2.getRange());
-    // Serial.print("\t3: "); Serial.print(sensor_3.getRange());
-    // Serial.print("\t4: "); Serial.print(sensor_4.getRange());
-    // Serial.print("\t5: "); Serial.print(sensor_5.getRange());
-    // Serial.print("\t6: "); Serial.println(sensor_6.getRange());
-
-    Serial.print("a\tt");
+    Serial.print("u\tt");
     Serial.print(millis());
-    // only one sensor needs to activate at a time to tell ROS to cut the motor power
-    if      (sensor_1.isActivated()) { Serial.print("\tn1\td"); Serial.print(sensor_1.getRange()); }
-    else if (sensor_2.isActivated()) { Serial.print("\tn2\td"); Serial.print(sensor_2.getRange()); }
-    else if (sensor_3.isActivated()) { Serial.print("\tn3\td"); Serial.print(sensor_3.getRange()); }
-    else if (sensor_4.isActivated()) { Serial.print("\tn4\td"); Serial.print(sensor_4.getRange()); }
-    else if (sensor_5.isActivated()) { Serial.print("\tn5\td"); Serial.print(sensor_5.getRange()); }
-    else if (sensor_6.isActivated()) { Serial.print("\tn6\td"); Serial.print(sensor_6.getRange()); }
-    else { Serial.print("\tn0\td0.0"); }
+    Serial.print("\td01"); Serial.print(sensor_1.getRange());
+    Serial.print("\td02"); Serial.print(sensor_2.getRange());
+    Serial.print("\td03"); Serial.print(sensor_3.getRange());
+    Serial.print("\td04"); Serial.print(sensor_4.getRange());
+    Serial.print("\td05"); Serial.print(sensor_5.getRange());
+    Serial.print("\td06"); Serial.print(sensor_6.getRange());
     Serial.print("\n");
 
     prev_ping_time = millis();

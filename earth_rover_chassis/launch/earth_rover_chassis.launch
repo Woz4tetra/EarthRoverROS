@@ -26,6 +26,23 @@
             <param name="right_min_speed_meters_per_s" value="-0.7352322682415865" />
 
             <param name="enable_pid" value="true" />
+
+            <!-- Sensor 1: Front right. 3.0cm -->
+            <!-- Sensor 2: Front left. 3.0cm -->
+            <!-- Sensor 3: Back right side. 2.5cm -->
+            <!-- Sensor 4: Back left side. 2.5cm -->
+            <!-- Sensor 5: Back right behind. 6.0cm -->
+            <!-- Sensor 6: Back left behind. 6.0cm -->
+            <rosparam param="activation_distances_cm">
+                [
+                    14.0,
+                    14.0,
+                    10.0,
+                    10.0,
+                    14.0,
+                    14.0,
+                ]
+            </rosparam>
         </node>
 
         <group ns="right" >

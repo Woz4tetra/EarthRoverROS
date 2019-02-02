@@ -5,7 +5,7 @@ import math
 import tf
 import rospy
 from geometry_msgs.msg import Twist, TwistStamped
-from std_msgs.msg import Float64, Int64
+from std_msgs.msg import Float64, Int64, Float32MultiArray
 from nav_msgs.msg import Odometry
 
 from motor_controller import MotorController, MotorInfo
@@ -40,6 +40,7 @@ class EarthRoverChassis:
         self.twist_sub = rospy.Subscriber("cmd_vel", Twist, self.twist_callback, queue_size=5)
         self.left_encoder_sub = rospy.Subscriber("left/left_encoder/ticks", Int64, self.left_encoder_callback, queue_size=50)
         self.right_encoder_sub = rospy.Subscriber("right/right_encoder/ticks", Int64, self.right_encoder_callback, queue_size=50)
+        self.ultrasonic_sub = rospy.Subscriber("earth_rover_teensy_bridge/ultrasonic", Float32MultiArray, self.ultrasonic_callback, queue_size=15)
 
         self.left_dist_pub = rospy.Publisher("left/left_encoder/distance", Float64, queue_size=5)
         self.right_dist_pub = rospy.Publisher("right/right_encoder/distance", Float64, queue_size=5)
@@ -123,6 +124,9 @@ class EarthRoverChassis:
 
     def right_encoder_callback(self, enc_msg):
         self.right_motor.enc_tick = enc_msg.data
+
+    def ultrasonic_callback(self, ultrasonic_msg):
+        print ultrasonic_msg
 
     def run(self):
         clock_rate = rospy.Rate(30)
