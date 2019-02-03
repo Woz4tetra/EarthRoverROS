@@ -196,7 +196,7 @@ void EarthRoverTeensyBridge::parseActDistToken(string token)
         // case 't': ROS_DEBUG("earth rover teensy time: %s", token.substr(1).c_str()); break;
         case 't': break;
         case 'l': setVectorLength(STR_TO_INT(token.substr(1))); break;
-        case 'd': assignDist(STR_TO_INT(token.substr(1, 2)) - 1, STR_TO_FLOAT(token.substr(3))); break;
+        case 'd': assignDist(STR_TO_INT(token.substr(1, 2)), STR_TO_FLOAT(token.substr(3))); break;
         default:
             ROS_WARN(
                 "Invalid segment type for earth rover teensy bridge! Segment: '%c', packet: '%s'",

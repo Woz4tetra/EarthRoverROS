@@ -107,12 +107,12 @@ void loop()
 
     Serial.print("u\tt");
     Serial.print(millis());
-    Serial.print("\td01"); Serial.print(sensor_1.getRange());
-    Serial.print("\td02"); Serial.print(sensor_2.getRange());
-    Serial.print("\td03"); Serial.print(sensor_3.getRange());
-    Serial.print("\td04"); Serial.print(sensor_4.getRange());
-    Serial.print("\td05"); Serial.print(sensor_5.getRange());
-    Serial.print("\td06"); Serial.print(sensor_6.getRange());
+    Serial.print("\td00"); Serial.print(sensor_1.getRange());
+    Serial.print("\td01"); Serial.print(sensor_2.getRange());
+    Serial.print("\td02"); Serial.print(sensor_3.getRange());
+    Serial.print("\td03"); Serial.print(sensor_4.getRange());
+    Serial.print("\td04"); Serial.print(sensor_5.getRange());
+    Serial.print("\td05"); Serial.print(sensor_6.getRange());
     Serial.print("\n");
 
     prev_ping_time = millis();

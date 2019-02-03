@@ -33,16 +33,22 @@
             <!-- Sensor 4: Back left side. 2.5cm -->
             <!-- Sensor 5: Back right behind. 6.0cm -->
             <!-- Sensor 6: Back left behind. 6.0cm -->
-            <rosparam param="activation_distances_cm">
+            <param name="easing_offset_cm" value="5.0" />
+            <rosparam param="stopping_distances_cm">
                 [
-                    14.0,
-                    14.0,
-                    10.0,
-                    10.0,
-                    14.0,
-                    14.0,
+                    5.0,
+                    5.0,
+                    4.0,
+                    4.0,
+                    8.0,
+                    8.0,
                 ]
             </rosparam>
+
+            <rosparam param="front_sensors"> [0, 1] </rosparam>
+            <rosparam param="right_sensors"> [2] </rosparam>
+            <rosparam param="left_sensors"> [3] </rosparam>
+            <rosparam param="back_sensors"> [4, 5] </rosparam>
         </node>
 
         <group ns="right" >
