@@ -12,7 +12,7 @@ class UltrasonicTracker:
         self.velocity_scale = 1.0
 
         self.smooth_dist = 0.0
-        self.smooth_k = 1.0
+        self.smooth_k = 0.8
 
     def update(self, distance):
         self.smooth_dist += self.smooth_k * (distance - self.smooth_dist)
@@ -24,8 +24,7 @@ class UltrasonicTracker:
         else:
             self.velocity_scale = (self.smooth_dist - self.stop_dist) / (self.ease_dist - self.stop_dist)
 
-    def scale_velocity(self, velocity):
-        return self.velocity_scale * velocity
+        self.velocity_scale *= self.velocity_scale  # create a quadratic relation
 
 
 class TrackerCollection:
@@ -35,5 +34,9 @@ class TrackerCollection:
     def append(self, tracker):
         self.trackers.append(tracker)
 
-    def update(self, velocity):
-        return min([tracker.scale_velocity(velocity) for tracker in self.trackers])
+    def scale(self, velocity):
+        if len(self.trackers) == 1:
+            scale = self.trackers[0].velocity_scale
+        else:
+            scale = min([tracker.velocity_scale for tracker in self.trackers])
+        return velocity * scale

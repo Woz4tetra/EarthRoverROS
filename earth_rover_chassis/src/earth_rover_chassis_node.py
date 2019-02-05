@@ -9,7 +9,7 @@ from std_msgs.msg import Float64, Int64, Float32MultiArray
 from nav_msgs.msg import Odometry
 
 from motor_controller import MotorController, MotorInfo
-from ultrasonic_tracker import UltrasonicTracker, Direction
+from ultrasonic_tracker import UltrasonicTracker, TrackerCollection, Direction
 from earth_rover_chassis.srv import TuneMotorPID, TuneMotorPIDResponse
 
 class EarthRoverChassis:
@@ -61,27 +61,6 @@ class EarthRoverChassis:
         assert self.left_sensors is not None
         assert self.back_sensors is not None
 
-        # Subscribers
-        self.twist_sub = rospy.Subscriber("cmd_vel", Twist, self.twist_callback, queue_size=5)
-        self.left_encoder_sub = rospy.Subscriber("left/left_encoder/ticks", Int64, self.left_encoder_callback, queue_size=50)
-        self.right_encoder_sub = rospy.Subscriber("right/right_encoder/ticks", Int64, self.right_encoder_callback, queue_size=50)
-        self.ultrasonic_sub = rospy.Subscriber(
-            "earth_rover_teensy_bridge/ultrasonic",
-            Float32MultiArray, self.ultrasonic_callback, queue_size=15
-        )
-
-        # Publishers
-        self.left_dist_pub = rospy.Publisher("left/left_encoder/distance", Float64, queue_size=5)
-        self.right_dist_pub = rospy.Publisher("right/right_encoder/distance", Float64, queue_size=5)
-        self.left_speed_pub = rospy.Publisher("left/left_encoder/speed", Float64, queue_size=5)
-        self.right_speed_pub = rospy.Publisher("right/right_encoder/speed", Float64, queue_size=5)
-        self.left_command_pub = rospy.Publisher("left/command_speed", Float64, queue_size=5)
-        self.right_command_pub = rospy.Publisher("right/command_speed", Float64, queue_size=5)
-        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=5)
-        
-        # Services
-        self.tuning_service = rospy.Service("tune_motor_pid", TuneMotorPID, self.tune_motor_pid)
-
         # Motor controller objects
         left_motor_info = MotorInfo(
             "left motor",
@@ -102,6 +81,9 @@ class EarthRoverChassis:
         self.left_motor = MotorController(left_motor_info)
         self.right_motor = MotorController(right_motor_info)
 
+        self.linear_speed_mps = 0.0
+        self.rotational_speed_mps = 0.0
+
         # Ultrasonic state tracking objects
         self.num_sensors = len(self.stopping_distances_cm)
 
@@ -112,22 +94,21 @@ class EarthRoverChassis:
             [Direction.RIGHT, self.right_sensors]
         ]
 
-        self.trackers_indexed = []
+        self.trackers_indexed = [None for _ in range(self.num_sensors)]
         self.trackers_directed = {
             Direction.FRONT: TrackerCollection(),
             Direction.BACK: TrackerCollection(),
             Direction.LEFT: TrackerCollection(),
             Direction.RIGHT: TrackerCollection(),
         }
-        index = 0
+
         for direction, sensor_indices in self.sensor_directions:
             for sensor_index in sensor_indices:
-                stop_dist = stopping_distances_cm[index]
-                ease_dist = stop_dist + easing_offset_cm
+                stop_dist = self.stopping_distances_cm[sensor_index]
+                ease_dist = stop_dist + self.easing_offset_cm
                 tracker = UltrasonicTracker(stop_dist, ease_dist)
-                self.trackers_indexed.append(tracker)
+                self.trackers_indexed[sensor_index] = tracker
                 self.trackers_directed[direction].append(tracker)
-                index += 1
 
         # prev state tracking
         self.prev_enc_time = rospy.Time.now()
@@ -148,6 +129,27 @@ class EarthRoverChassis:
         self.odom_msg.header.frame_id = self.parent_frame
         self.odom_msg.child_frame_id = self.child_frame
 
+        # Subscribers
+        self.twist_sub = rospy.Subscriber("cmd_vel", Twist, self.twist_callback, queue_size=5)
+        self.left_encoder_sub = rospy.Subscriber("left/left_encoder/ticks", Int64, self.left_encoder_callback, queue_size=50)
+        self.right_encoder_sub = rospy.Subscriber("right/right_encoder/ticks", Int64, self.right_encoder_callback, queue_size=50)
+        self.ultrasonic_sub = rospy.Subscriber(
+            "earth_rover_teensy_bridge/ultrasonic",
+            Float32MultiArray, self.ultrasonic_callback, queue_size=15
+        )
+
+        # Publishers
+        self.left_dist_pub = rospy.Publisher("left/left_encoder/distance", Float64, queue_size=5)
+        self.right_dist_pub = rospy.Publisher("right/right_encoder/distance", Float64, queue_size=5)
+        self.left_speed_pub = rospy.Publisher("left/left_encoder/speed", Float64, queue_size=5)
+        self.right_speed_pub = rospy.Publisher("right/right_encoder/speed", Float64, queue_size=5)
+        self.left_command_pub = rospy.Publisher("left/command_speed", Float64, queue_size=5)
+        self.right_command_pub = rospy.Publisher("right/command_speed", Float64, queue_size=5)
+        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=5)
+
+        # Services
+        self.tuning_service = rospy.Service("tune_motor_pid", TuneMotorPID, self.tune_motor_pid)
+
     def tune_motor_pid(self, request):
         kp = request.kp
         ki = request.ki
@@ -160,17 +162,12 @@ class EarthRoverChassis:
         return TuneMotorPIDResponse()
 
     def twist_callback(self, twist_msg):
-        linear_speed_mps = twist_msg.linear.x  # m/s
+        self.linear_speed_mps = twist_msg.linear.x  # m/s
         angular_speed_radps = twist_msg.angular.z  # rad/s
 
         # arc = angle * radius
         # rotation speed at the wheels
-        rotational_speed_mps = angular_speed_radps / (2 * math.pi) * self.wheel_distance / 2
-
-        linear_speed_mps, rotational_speed_mps = self.scale_targets(linear_speed_mps, rotational_speed_mps)
-
-        self.left_motor.set_target(linear_speed_mps - rotational_speed_mps)
-        self.right_motor.set_target(linear_speed_mps + rotational_speed_mps)
+        self.rotational_speed_mps = angular_speed_radps / (2 * math.pi) * self.wheel_distance / 2
 
     def left_encoder_callback(self, enc_msg):
         self.left_motor.enc_tick = -enc_msg.data
@@ -180,17 +177,18 @@ class EarthRoverChassis:
 
     def ultrasonic_callback(self, ultrasonic_msg):
         for index, distance in enumerate(ultrasonic_msg.data):
-            self.ultrasonic_trackers[index].update(distance)
+            self.trackers_indexed[index].update(distance)
 
     def scale_targets(self, lin_vel, ang_vel):
         if lin_vel > 0:
-            lin_vel = self.trackers_directed[Direction.FRONT].update(lin_vel)
+            lin_vel = self.trackers_directed[Direction.FRONT].scale(lin_vel)
         elif lin_vel < 0:
-            lin_vel = self.trackers_directed[Direction.BACK].update(lin_vel)
-        elif ang_vel > 0:
-            ang_vel = self.trackers_directed[Direction.LEFT].update(ang_vel)
-        elif ang_vel < 0:
-            ang_vel = self.trackers_directed[Direction.RIGHT].update(ang_vel)
+            lin_vel = self.trackers_directed[Direction.BACK].scale(lin_vel)
+        elif ang_vel < 0:  # if moving right, check the left side
+            ang_vel = self.trackers_directed[Direction.LEFT].scale(ang_vel)
+        elif ang_vel > 0:  # if moving left, check the right side
+            ang_vel = self.trackers_directed[Direction.RIGHT].scale(ang_vel)
+
         return lin_vel, ang_vel
 
     def run(self):
@@ -218,6 +216,13 @@ class EarthRoverChassis:
             )
 
             self.publish_chassis_data()
+
+            linear_speed_mps, rotational_speed_mps = self.scale_targets(
+                self.linear_speed_mps, self.rotational_speed_mps
+            )
+
+            self.left_motor.set_target(linear_speed_mps - rotational_speed_mps)
+            self.right_motor.set_target(linear_speed_mps + rotational_speed_mps)
 
             clock_rate.sleep()
 
