@@ -134,7 +134,7 @@ int EarthRoverTeensyBridge::run()
                 continue;
             }
 
-            // ROS_DEBUG("buffer: %s", serial_buffer.c_str());
+            // ROS_INFO("buffer: %s", serial_buffer.c_str());
 
             // Parse encoder segment
             if (serial_buffer.length() > ULTRASONIC_MESSAGE_HEADER.size() &&
