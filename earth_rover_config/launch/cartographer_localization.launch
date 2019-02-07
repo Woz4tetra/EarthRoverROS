@@ -8,7 +8,7 @@
 
     <node name="cartographer_node" pkg="cartographer_ros"
         type="cartographer_node" args="
-            -configuration_directory $(find earth_rover_config)/configuration_files
+            -configuration_directory $(find earth_rover_config)/param/cartographer
             -configuration_basename earth_rover.lua"
         output="screen">
       <remap from="scan" to="/rplidar/scan" />
