@@ -5,6 +5,17 @@ class Direction:
     LEFT = 2
     RIGHT = 3
 
+    directions = [
+        "FRONT",
+        "BACK",
+        "LEFT",
+        "RIGHT",
+    ]
+
+    @staticmethod
+    def name(direction):
+        return Direction.directions[direction]
+
 class UltrasonicTracker:
     def __init__(self, stop_dist, ease_dist):
         self.ease_dist = ease_dist
@@ -30,13 +41,20 @@ class UltrasonicTracker:
 class TrackerCollection:
     def __init__(self):
         self.trackers = []
+        self.scale = 0.0
 
     def append(self, tracker):
         self.trackers.append(tracker)
 
-    def scale(self, velocity):
+    def scale_v(self, velocity):
         if len(self.trackers) == 1:
-            scale = self.trackers[0].velocity_scale
+            self.scale = self.trackers[0].velocity_scale
         else:
-            scale = min([tracker.velocity_scale for tracker in self.trackers])
-        return velocity * scale
+            self.scale = min([tracker.velocity_scale for tracker in self.trackers])
+        return velocity * self.scale
+
+    def get_dists(self):
+        return [tracker.smooth_dist for tracker in self.trackers]
+
+    def get_scale(self):
+        return self.scale

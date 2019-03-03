@@ -181,19 +181,20 @@ class EarthRoverChassis:
 
     def scale_targets(self, lin_vel, ang_vel):
         if lin_vel > 0:
-            lin_vel = self.trackers_directed[Direction.FRONT].scale(lin_vel)
+            lin_vel = self.trackers_directed[Direction.FRONT].scale_v(lin_vel)
         elif lin_vel < 0:
-            lin_vel = self.trackers_directed[Direction.BACK].scale(lin_vel)
+            lin_vel = self.trackers_directed[Direction.BACK].scale_v(lin_vel)
         elif ang_vel < 0:  # if moving right, check the left side
-            ang_vel = self.trackers_directed[Direction.LEFT].scale(ang_vel)
+            ang_vel = self.trackers_directed[Direction.LEFT].scale_v(ang_vel)
         elif ang_vel > 0:  # if moving left, check the right side
-            ang_vel = self.trackers_directed[Direction.RIGHT].scale(ang_vel)
+            ang_vel = self.trackers_directed[Direction.RIGHT].scale_v(ang_vel)
 
         return lin_vel, ang_vel
 
     def run(self):
         clock_rate = rospy.Rate(30)
 
+        prev_ultrasonic_report_t = rospy.Time.now()
         self.prev_enc_time = rospy.Time.now()
         while not rospy.is_shutdown():
             current_time = rospy.Time.now()
@@ -220,6 +221,16 @@ class EarthRoverChassis:
             linear_speed_mps, rotational_speed_mps = self.scale_targets(
                 self.linear_speed_mps, self.rotational_speed_mps
             )
+            if linear_speed_mps != self.linear_speed_mps or rotational_speed_mps != self.rotational_speed_mps:
+                if current_time - prev_ultrasonic_report_t > 0.5:
+                    prev_ultrasonic_report_t = current_time
+
+                    print "Scaling speed based on distance sensors"
+                    for direction in self.trackers_directed:
+                        print "\t%s, dist: %s, scale: %s" % (
+                            Direction.name[direction],  self.trackers_directed[direction].get_dists(),
+                            self.trackers_directed[direction].get_scale()
+                        )
 
             self.left_motor.set_target(linear_speed_mps - rotational_speed_mps)
             self.right_motor.set_target(linear_speed_mps + rotational_speed_mps)

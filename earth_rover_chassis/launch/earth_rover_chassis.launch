@@ -19,6 +19,10 @@
             <param name="wheel_distance_meters" value="0.391266" />
             <param name="ticks_per_rotation" value="1245.768" />
 
+            <!-- Max translational speed: 0.73m/s -->
+            <!-- Max rotational speed: 7.5rad/s (7.46295359167) -->
+
+            <!-- Average max motor speed: 0.73m/s (0.729119839)-->
             <param name="left_max_speed_meters_per_s" value="0.7115280036277266" />
             <param name="right_max_speed_meters_per_s" value="0.7548169170047755" />
 
