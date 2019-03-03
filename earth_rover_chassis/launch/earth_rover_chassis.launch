@@ -14,9 +14,11 @@
             <param name="ki" value="0.0" />
             <param name="kd" value="0.0" />
             <param name="speed_smooth_k" value="0.5" />
+            <param name="output_deadzone" value="0.15" />
 
             <param name="wheel_radius_meters" value="0.0715645" />
             <param name="wheel_distance_meters" value="0.391266" />
+            <!-- <param name="wheel_distance_meters" value="0.8" /> -->
             <param name="ticks_per_rotation" value="1245.768" />
 
             <!-- Max translational speed: 0.73m/s -->

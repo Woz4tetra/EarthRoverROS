@@ -9,5 +9,5 @@
     <include file="$(find earth_rover_config)/launch/sensors.launch"></include>
 
     <node pkg="rosbag" type="record" name="rosbag_record_cam"
-       args="record -o $(find earth_rover_config)/bags/bag   /zed/point_cloud/cloud_registered   /rplidar/scan   /earth_rover/left   /earth_rover/right   "/>
+       args="record -o $(find earth_rover_config)/bags/bag   /zed/point_cloud/cloud_registered   lo /rplidar/scan   /earth_rover/left   /earth_rover/right   "/>
 </launch>

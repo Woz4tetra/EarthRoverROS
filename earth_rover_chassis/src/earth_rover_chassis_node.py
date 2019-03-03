@@ -222,13 +222,13 @@ class EarthRoverChassis:
                 self.linear_speed_mps, self.rotational_speed_mps
             )
             if linear_speed_mps != self.linear_speed_mps or rotational_speed_mps != self.rotational_speed_mps:
-                if current_time - prev_ultrasonic_report_t > 0.5:
+                if current_time - prev_ultrasonic_report_t > rospy.Duration(0.5):
                     prev_ultrasonic_report_t = current_time
 
                     print "Scaling speed based on distance sensors"
                     for direction in self.trackers_directed:
                         print "\t%s, dist: %s, scale: %s" % (
-                            Direction.name[direction],  self.trackers_directed[direction].get_dists(),
+                            Direction.name(direction),  self.trackers_directed[direction].get_dists(),
                             self.trackers_directed[direction].get_scale()
                         )
 
@@ -281,14 +281,14 @@ class EarthRoverChassis:
         delta_dist = (delta_right + delta_left) / 2
 
         # angle = arc / radius
-        delta_angle = (delta_right - delta_left) / (self.wheel_distance / 2)
+        delta_angle = (delta_right - delta_left) / self.wheel_distance
+        self.odom_t += delta_angle
 
         dx = delta_dist * math.cos(self.odom_t)
         dy = delta_dist * math.sin(self.odom_t)
 
         self.odom_x += dx
         self.odom_y += dy
-        self.odom_t += delta_angle
 
         speed = (right_speed + left_speed) / 2
         self.odom_vx = speed * math.cos(self.odom_t)
