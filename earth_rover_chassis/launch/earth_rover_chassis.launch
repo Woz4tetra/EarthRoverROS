@@ -10,15 +10,15 @@
         <node name="earth_rover_chassis" pkg="earth_rover_chassis" type="earth_rover_chassis_node.py" output="screen" required="true">
             <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
 
-            <param name="kp" value="0.5" />
+            <param name="kp" value="0.25" />
             <param name="ki" value="0.0" />
             <param name="kd" value="0.0" />
             <param name="speed_smooth_k" value="0.5" />
-            <param name="output_deadzone" value="0.15" />
+            <param name="output_deadzone" value="0.05" />
 
             <param name="wheel_radius_meters" value="0.0715645" />
-            <param name="wheel_distance_meters" value="0.391266" />
-            <!-- <param name="wheel_distance_meters" value="0.8" /> -->
+            <param name="wheel_distance_meters" value="0.42" />
+            <!-- <param name="wheel_distance_meters" value="0.391266" /> -->
             <param name="ticks_per_rotation" value="1245.768" />
 
             <!-- Max translational speed: 0.73m/s -->
@@ -40,6 +40,9 @@
             <!-- Sensor 5: Back right behind. 6.0cm -->
             <!-- Sensor 6: Back left behind. 6.0cm -->
             <param name="easing_offset_cm" value="15.0" />
+            <param name="min_tracking_lin_vel" value="0.8" />
+            <param name="min_tracking_ang_vel" value="0.17" />
+
             <rosparam param="stopping_distances_cm">
                 [
                     10.0,

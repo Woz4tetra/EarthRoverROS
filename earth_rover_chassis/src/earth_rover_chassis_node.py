@@ -50,6 +50,8 @@ class EarthRoverChassis:
         # Ultrasonic parameters
         self.stopping_distances_cm = rospy.get_param("~stopping_distances_cm", None)
         self.easing_offset_cm = rospy.get_param("~easing_offset_cm", 5.0)
+        self.easing_offset_cm = rospy.get_param("~min_tracking_lin_vel", 0.07)
+        self.easing_offset_cm = rospy.get_param("~min_tracking_ang_vel", 5.0)
         self.front_sensors = rospy.get_param("~front_sensors", None)
         self.right_sensors = rospy.get_param("~right_sensors", None)
         self.left_sensors = rospy.get_param("~left_sensors", None)
@@ -111,7 +113,6 @@ class EarthRoverChassis:
                 self.trackers_directed[direction].append(tracker)
 
         # prev state tracking
-        self.prev_enc_time = rospy.Time.now()
         self.prev_left_output = 0.0
         self.prev_right_output = 0.0
 
@@ -172,8 +173,16 @@ class EarthRoverChassis:
     def left_encoder_callback(self, enc_msg):
         self.left_motor.enc_tick = -enc_msg.data
 
+        dt = self.left_motor.get_dt(rospy.Time.now())
+        left_output = self.left_motor.update(dt)
+        self.command_left_motor(left_output)
+
     def right_encoder_callback(self, enc_msg):
         self.right_motor.enc_tick = enc_msg.data
+
+        dt = self.right_motor.get_dt(rospy.Time.now())
+        right_output = self.right_motor.update(dt)
+        self.command_right_motor(right_output)
 
     def ultrasonic_callback(self, ultrasonic_msg):
         for index, distance in enumerate(ultrasonic_msg.data):
@@ -195,23 +204,10 @@ class EarthRoverChassis:
         clock_rate = rospy.Rate(30)
 
         prev_ultrasonic_report_t = rospy.Time.now()
-        self.prev_enc_time = rospy.Time.now()
         while not rospy.is_shutdown():
-            current_time = rospy.Time.now()
-            dt = (current_time - self.prev_enc_time).to_sec()
-            self.prev_enc_time = current_time
-
-            left_output = self.left_motor.update(dt)
-            right_output = self.right_motor.update(dt)
-
-            if self.prev_left_output != left_output or self.prev_right_output != right_output:
-                self.command_motors(left_output, right_output)
-                self.prev_left_output = left_output
-                self.prev_right_output = right_output
-
             self.compute_odometry(
-                self.left_motor.delta_dist,
-                self.right_motor.delta_dist,
+                self.left_motor.get_delta_dist(),
+                self.right_motor.get_delta_dist(),
                 self.left_motor.get_speed(),
                 self.right_motor.get_speed()
             )
@@ -222,6 +218,7 @@ class EarthRoverChassis:
                 self.linear_speed_mps, self.rotational_speed_mps
             )
             if linear_speed_mps != self.linear_speed_mps or rotational_speed_mps != self.rotational_speed_mps:
+                current_time = rospy.Time.now()
                 if current_time - prev_ultrasonic_report_t > rospy.Duration(0.5):
                     prev_ultrasonic_report_t = current_time
 
@@ -237,10 +234,15 @@ class EarthRoverChassis:
 
             clock_rate.sleep()
 
-    def command_motors(self, left_command, right_command):
-        if self.enable_pid:
-            self.left_command_pub.publish(left_command)
-            self.right_command_pub.publish(right_command)
+    def command_left_motor(self, command):
+        if self.enable_pid and self.prev_left_output != command:
+            self.left_command_pub.publish(command)
+            self.prev_left_output = command
+
+    def command_right_motor(self, command):
+        if self.enable_pid and self.prev_right_output != command:
+            self.right_command_pub.publish(command)
+            self.prev_right_output = command
 
     def publish_chassis_data(self):
         self.left_dist_pub.publish(self.left_motor.get_dist())
@@ -294,6 +296,8 @@ class EarthRoverChassis:
         self.odom_vx = speed * math.cos(self.odom_t)
         self.odom_vy = speed * math.sin(self.odom_t)
         self.odom_vt = (right_speed - left_speed) / (self.wheel_distance / 2)
+
+        # print self.odom_x, self.odom_y, math.degrees(self.odom_t)
 
 if __name__ == "__main__":
     try:

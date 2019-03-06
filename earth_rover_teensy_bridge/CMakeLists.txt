@@ -60,10 +60,10 @@ roslaunch_add_file_check(launch)
 # )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-    FILES
-    ActivationDistances.srv
-)
+# add_service_files(
+#     FILES
+    # ActivationDistances.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(

@@ -25,7 +25,7 @@
     <include file="$(find earth_rover_config)/launch/chassis_mux.launch"></include>
     <!-- <include file="$(find earth_rover_config)/launch/zed.launch"></include> -->
     <include file="$(find earth_rover_config)/launch/rplidar.launch"></include>
-    <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/gmapping_map_maker.launch"></include>
+    <!-- <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/gmapping_map_maker.launch"></include> -->
     <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch"></include>
     <include file="$(find earth_rover_config)/launch/move_base.launch"></include>
 

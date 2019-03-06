@@ -36,7 +36,8 @@ class PID:
         if self.ki != 0.0:
             self.integral_total += error * dt
 
-        output = open_loop_setpoint + self.kp * error + self.ki * self.integral_total + self.kd * d_value
+        output = self.kp * error + self.ki * self.integral_total + self.kd * d_value
+        output += open_loop_setpoint
         output = min(output, self.max_output)
         output = max(output, self.min_output)
 

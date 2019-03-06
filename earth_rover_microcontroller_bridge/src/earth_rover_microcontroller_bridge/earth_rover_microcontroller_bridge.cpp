@@ -120,7 +120,7 @@ int EarthRoverMicroControllerBridge::run()
 
     serial_ref.write(START_COMMAND);
 
-    ros::Rate clock_rate(120);  // Hz
+    ros::Rate clock_rate(240);  // Hz. Much faster than microcontroller update rate
 
     // ros::Duration(0.25).sleep();
     ROS_INFO("led_control_start_command: %s", led_control_start_command.c_str());

@@ -125,7 +125,7 @@ void loop() {
         if (status == 2)  // start event
         {
             encoder.write(0);
-            prev_print_time = millis();
+            prev_print_time = micros();
             // set_rainbow_type('s');
         }
         else if (status == 1)  // stop event
@@ -150,9 +150,12 @@ void loop() {
 
     if (!manager.isPaused()) {
         encoder_pos = encoder.read();
+        if (prev_print_time > micros()) {
+            prev_print_time = micros();
+        }
 
-        if ((millis() - prev_print_time) > 10) {
-            prev_print_time = millis();
+        if ((micros() - prev_print_time) > 16666) {  // ~60 Hz
+            prev_print_time = micros();
             Serial.print("enc\tt");
             Serial.print(prev_print_time);
             Serial.print("\tp");
