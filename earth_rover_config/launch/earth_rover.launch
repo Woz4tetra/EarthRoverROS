@@ -15,8 +15,10 @@
     <include file="$(find earth_rover_teensy_bridge)/launch/earth_rover_teensy_bridge.launch"/>
 
     <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch">
-        <arg name="joystick_linear_scale"   value="0.65" />
-        <arg name="joystick_angular_scale"   value="10.0" />
+        <!-- <arg name="joystick_linear_scale"   value="0.65" /> -->
+        <arg name="joystick_linear_scale"   value="0.55" />
+        <!-- <arg name="joystick_angular_scale"   value="10.0" /> -->
+        <arg name="joystick_angular_scale"   value="7.0" />
         <arg name="twist_publish_topic_name"   value="cmd_vel_joy_input" />
     </include>
 
@@ -25,9 +27,9 @@
     <include file="$(find earth_rover_config)/launch/chassis_mux.launch"></include>
     <!-- <include file="$(find earth_rover_config)/launch/zed.launch"></include> -->
     <include file="$(find earth_rover_config)/launch/rplidar.launch"></include>
-    <!-- <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/gmapping_map_maker.launch"></include> -->
+    <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/gmapping_map_maker.launch"></include>
     <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch"></include>
-    <include file="$(find earth_rover_config)/launch/move_base.launch"></include>
+    <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/move_base.launch"></include>
 
     <!-- <include file="$(find earth_rover_config)/launch/rtabmap_localization.launch"></include> -->
     <!-- <include file="$(find earth_rover_config)/launch/cartographer_localization.launch"></include> -->
