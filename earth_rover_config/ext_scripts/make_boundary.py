@@ -90,10 +90,11 @@ def test_algorithm(shapely_polygon, my_polygon, test_points):
 
 
 def write_to_file(path, polygon):
-    buffer = ""
+    buffer = "[\n"
     for point in polygon.tolist():
-        buffer += "%s, %s,\n" % (point[0], point[1])
+        buffer += "\t[%s, %s],\n" % (point[0], point[1])
     buffer = buffer[:-2]
+    buffer += "\n]"
     with open(path, 'w+') as file:
         file.write(buffer)
 
@@ -114,7 +115,7 @@ def load_points():
     bounding_box_min = bounding_box.with_polygon(bounding_box)
 
     # bounding_box_max.scale(1.2, 1.2)
-    bounding_box_max.offset(0.03, 0)
+    bounding_box_max.offset(0.02, 0)
 
     bounding_box_max_points = np.array(bounding_box_max.points)
     bounding_box_min_points = np.array(bounding_box_min.points)
