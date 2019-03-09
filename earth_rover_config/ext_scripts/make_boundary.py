@@ -92,7 +92,7 @@ def test_algorithm(shapely_polygon, my_polygon, test_points):
 def write_to_file(path, polygon):
     buffer = "[\n"
     for point in polygon.tolist():
-        buffer += "\t[%s, %s],\n" % (point[0], point[1])
+        buffer += "    [%s, %s],\n" % (point[0], point[1])
     buffer = buffer[:-2]
     buffer += "\n]"
     with open(path, 'w+') as file:
