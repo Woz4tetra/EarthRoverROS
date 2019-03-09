@@ -168,7 +168,7 @@ class EarthRoverChassis:
 
         # arc = angle * radius
         # rotation speed at the wheels
-        self.rotational_speed_mps = angular_speed_radps / (2 * math.pi) * self.wheel_distance / 2
+        self.rotational_speed_mps = angular_speed_radps * self.wheel_distance / 2
 
     def left_encoder_callback(self, enc_msg):
         self.left_motor.enc_tick = -enc_msg.data

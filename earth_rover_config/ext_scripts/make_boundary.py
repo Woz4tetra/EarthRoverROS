@@ -120,12 +120,12 @@ def load_points():
     bounding_box_max_points = np.array(bounding_box_max.points)
     bounding_box_min_points = np.array(bounding_box_min.points)
 
-    theta = np.radians(180)
-    c, s = np.cos(theta), np.sin(theta)
-    rotation_mat = np.array([[c, -s], [s, c]])
-
-    bounding_box_max_points = bounding_box_max_points.dot(rotation_mat)
-    bounding_box_min_points = bounding_box_min_points.dot(rotation_mat)
+    # theta = np.radians(180)
+    # c, s = np.cos(theta), np.sin(theta)
+    # rotation_mat = np.array([[c, -s], [s, c]])
+    #
+    # bounding_box_max_points = bounding_box_max_points.dot(rotation_mat)
+    # bounding_box_min_points = bounding_box_min_points.dot(rotation_mat)
 
     shapely_bounding_box_max = ShapelyPolygon(bounding_box_max_points)
     # shapely_bounding_box_min = ShapelyPolygon(bounding_box_max_points)
