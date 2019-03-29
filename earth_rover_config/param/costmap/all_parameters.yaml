@@ -1,0 +1,366 @@
+
+base_global_planner: "global_planner/GlobalPlanner" # alternatives: navfn/NavfnROS, global_planner/GlobalPlanner, carrot_planner/CarrotPlanner
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+# recovery_behaviors:
+#   - name: 'super_conservative_reset1'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'conservative_reset1'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'aggressive_reset1'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'clearing_rotation1'
+#     type: 'rotate_recovery/RotateRecovery'
+#   - name: 'super_conservative_reset2'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'conservative_reset2'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'aggressive_reset2'
+#     type: 'clear_costmap_recovery/ClearCostmapRecovery'
+#   - name: 'clearing_rotation2'
+#     type: 'rotate_recovery/RotateRecovery'
+
+# super_conservative_reset1:
+#   reset_distance: 3.0
+# conservative_reset1:
+#   reset_distance: 1.5
+# aggressive_reset1:
+#   reset_distance: 0.0
+# super_conservative_reset2:
+#   reset_distance: 3.0
+# conservative_reset2:
+#   reset_distance: 1.5
+# aggressive_reset2:
+#   reset_distance: 0.0
+
+# The rate in Hz at which to run the control loop and send velocity commands
+# to the base.
+controller_frequency: 20.0
+
+# How long the planner will wait in seconds in an attempt to find a valid plan
+# before space-clearing operations are performed.
+planner_patience: 5.0
+
+# How long the controller will wait in seconds without receiving a valid control
+# before space-clearing operations are performed.
+controller_patience: 15.0
+
+# The distance away from the robot in meters beyond which obstacles will be
+# cleared from the costmap when attempting to clear space in the map.
+# Note, this parameter is only used when the default recovery behaviors are
+# used for move_base.
+conservative_reset_dist: 3.0
+
+# Whether or not to enable the move_base recovery behaviors to attempt to
+# clear out space.
+recovery_behavior_enabled: true
+
+# Determines whether or not the robot will attempt an in-place rotation when
+# attempting to clear out space. Note: This parameter is only used when the
+# default recovery behaviors are in use, meaning the user has not set the
+# recovery_behaviors parameter to anything custom.
+clearing_rotation_allowed: true
+
+# Determines whether or not to shutdown the costmaps of the node when
+# move_base is in an inactive state
+shutdown_costmaps: false
+
+# How long in seconds to allow for oscillation before executing recovery
+# behaviors. A value of 0.0 corresponds to an infinite timeout.
+oscillation_timeout: 0.0
+
+# How far in meters the robot must move to be considered not to be oscillating.
+# Moving this far resets the timer counting up to the ~oscillation_timeout
+oscillation_distance: 0.5
+
+# The rate in Hz at which to run the global planning loop. If the frequency is
+# set to 0.0, the global planner will only run when a new goal is received or
+# the local planner reports that its path is blocked.
+planner_frequency: 0.0
+
+
+# How many times to allow for planning retries before executing recovery
+# behaviors. A value of -1.0 corresponds to an infinite retries.
+max_planning_retries: -1
+
+
+### DWAPlanner parameters ###
+# Used if "dwa_local_planner/DWAPlannerROS" is selected in
+# base_local_planner in move_base global params.
+# load with the namespace "DWAPlannerROS" in the launch file
+
+
+## Robot Configuration Parameters ##
+
+# The x acceleration limit of the robot in meters/sec^2
+acc_lim_x: 2.5
+
+# The y acceleration limit of the robot in meters/sec^2
+acc_lim_y: 2.5
+
+# The rotational acceleration limit of the robot in radians/sec^2
+acc_lim_th: 3.2
+
+# The absolute value of the minimum translational velocity for the robot in m/s
+min_trans_vel: 0.1
+
+# The maximum x velocity for the robot in m/s.
+max_vel_x: 0.55
+
+# The minimum x velocity for the robot in m/s, negative for backwards motion.
+min_vel_x: 0.0
+
+# The maximum y velocity for the robot in m/s
+max_vel_y: 0.1
+
+# The minimum y velocity for the robot in m/s
+min_vel_y: -0.1
+
+# The absolute value of the maximum rotational velocity for the robot in rad/s
+max_rot_vel: 1.0
+
+# The absolute value of the minimum rotational velocity for the robot in rad/s
+min_rot_vel: 0.4
+
+
+## Goal Tolerance Parameters ##
+
+# The tolerance in radians for the controller in yaw/rotation when achieving its goal
+yaw_goal_tolerance: 0.05
+
+# The tolerance in meters for the controller in the x & y distance when achieving a goal
+xy_goal_tolerance: 0.1
+
+# If goal tolerance is latched, if the robot ever reaches the goal xy location
+# it will simply rotate in place, even if it ends up outside the goal
+# tolerance while it is doing so.
+latch_xy_goal_tolerance: false
+
+
+## Forward Simulation Parameters ##
+
+# The amount of time to forward-simulate trajectories in seconds
+sim_time: 0.7
+
+# The step size, in meters, to take between points on a given trajectory
+sim_granularity: 0.025
+
+# The number of samples to use when exploring the x velocity space
+vx_samples: 3
+
+# The number of samples to use when exploring the y velocity space
+vy_samples: 10
+
+# The number of samples to use when exploring the theta velocity space
+vth_samples: 20
+
+# The frequency at which this controller will be called in Hz.
+# Overrides move_base's global controller_frequency parameter if set
+# controller_frequency: 20.0
+
+
+## Trajectory Scoring Parameters ##
+
+# cost =
+#   path_distance_bias * (distance to path from the endpoint of the trajectory in meters)
+#   + goal_distance_bias * (distance to local goal from the endpoint of the trajectory in meters)
+#   + occdist_scale * (maximum obstacle cost along the trajectory in obstacle cost (0-254))
+
+# The weighting for how much the controller should stay close to the path
+# it was given
+path_distance_bias: 32.0
+
+# The weighting for how much the controller should attempt to reach its local
+# goal, also controls speed
+goal_distance_bias: 24.0
+
+# The weighting for how much the controller should attempt to avoid obstacles
+occdist_scale: 0.01
+
+# The distance from the center point of the robot to place an additional scoring point, in meters
+forward_point_distance: 0.325
+
+# The amount of time that the robot must stop before a collision in order for a
+# trajectory to be considered valid in seconds
+stop_time_buffer: 0.2
+
+# The absolute value of the velocity at which to start scaling the robot's footprint, in m/s
+scaling_speed: 0.25
+
+# The maximum factor to scale the robot's footprint by
+max_scaling_factor: 0.2
+
+# Whether or not to publish the cost grid that the planner will use when planning.
+publish_cost_grid: false
+
+
+## Oscillation Prevention Parameters ##
+
+# How far the robot must travel in meters before oscillation flags are reset
+oscillation_reset_dist: 0.05
+
+## Global Plan Parameters ##
+
+# Defines whether or not to eat up the plan as the robot moves along the path.
+# If set to true, points will fall off the end of the plan once the robot moves 1 meter past them.
+prune_plan: true
+
+
+### Global planner parameters ###
+# Used if "global_planner/GlobalPlanner" is selected in
+# base_global_planner in move_base global params.
+# load with the namespace "GlobalPlanner" in the launch file
+
+# Specifies whether or not to allow the planner to create plans that traverse unknown space.
+# Must be true if using voxel or obstacle layer
+allow_unknown: true
+
+# A tolerance on the goal point for the planner.
+default_tolerance: 0.0
+
+# Specifies whether or not to visualize the potential area computed via a PointCloud2.
+visualize_potential: false
+
+# If true, use dijkstra's algorithm. Otherwise, A*.
+use_dijkstra: true
+
+# If true, use the quadratic approximation of the potential. Otherwise, use a simpler calculation.
+use_quadratic: true
+
+# If true, create a path that follows the grid boundaries. Otherwise, use a gradient descent method.
+use_grid_path: false
+
+# If for some reason, you want global_planner to exactly mirror the behavior of navfn, set this to true
+old_navfn_behavior: false
+
+# Lethal Cost (dynamic reconfigure)
+lethal_cost: 253
+
+# Neutral Cost (dynamic reconfigure)
+neutral_cost: 50
+
+# Factor to multiply each cost from costmap by (dynamic reconfigure)
+cost_factor: 3.0
+
+# Publish Potential Costmap (dynamic reconfigure)
+publish_potential: true
+
+# How to set the orientation of each point
+# (None=0, Forward=1, Interpolate=2, ForwardThenInterpolate=3, Backward=4, Leftward=5, Rightward=6) (dynamic reconfigure)
+orientation_mode: 0
+
+# What window to use to determine the orientation based on the position
+# derivative specified by the orientation mode (dynamic reconfigure)
+orientation_window_size: 1
+
+
+### Common costmap parameters ###
+
+footprint: [
+    [-0.500663781, -0.186784927],
+    [-0.0842645, -0.186784927],
+    [-0.0842645, -0.250748756],
+    [0.1342645, -0.250748756],
+    [0.1342645, -0.153217622],
+    [0.1960908, -0.153217622],
+    [0.1960908, 0.153217622],
+    [0.1342645, 0.153217622],
+    [0.1342645, 0.250748756],
+    [-0.0842645, 0.250748756],
+    [-0.0842645, 0.186784927],
+    [-0.500663781, 0.186784927]
+]
+
+# Specifies the delay in transform (tf) data that is tolerable in seconds.
+# This parameter serves as a safeguard to losing a link in the tf tree while
+# still allowing an amount of latency the user is comfortable with to exist
+# in the system.
+transform_tolerance: 0.2
+
+# The frequency in Hz for the map to be updated.
+update_frequency: 5.0
+
+# The frequency in Hz for the map to be publish display information.
+publish_frequency: 1.0
+
+# Whether or not to use a rolling window version of the costmap. If the
+# static_map parameter is set to true, this parameter must be set to false.
+rolling_window: false
+
+# If true the full costmap is published to "~<name>/costmap" every update.
+# If false only the part of the costmap that has changed is published on the
+# "~<name>/costmap_updates" topic.
+always_send_full_costmap: false
+
+# static namespace. Defined in global and local costmap "plugins" dictionaries
+static:
+    map_topic: /map
+    subscribe_to_updates: true
+
+
+# inflation namespace. Defined in global and local costmap "plugins" dictionaries
+inflation:
+    enabled:              true
+    cost_scaling_factor:  2.58
+    inflation_radius:     0.25
+
+
+### Local costmap parameters - load with the namespace "local_costmap" in the launch file ###
+
+# The global frame for the local costmap to operate in.
+global_frame: odom
+
+# The name of the frame for the base link of the robot.
+robot_base_frame: base_link
+
+rolling_window: true
+
+plugins:
+    # parameters defined in costmap commmon parameters file
+    - {name: static_map,       type: "costmap_2d::StaticLayer"}
+    - {name: obstacles,        type: "costmap_2d::VoxelLayer"}
+
+# namespace named in dictionary above
+obstacles:
+    observation_sources: base_scan
+    base_scan:
+        topic: /rplidar/scan
+        sensor_frame: /laser
+        # observation_persistence: 0.0
+        # expected_update_rate: 0.0
+        data_type: LaserScan
+        clearing: true
+        marking: true
+        # max_obstacle_height: 2.0
+        # min_obstacle_height: 0.0
+        # obstacle_range: 2.5
+        # raytrace_range: 3.0
+        # inf_is_valid: false
+
+# The maximum height of any obstacle to be inserted into the costmap in meters.
+# This parameter should be set to be slightly higher than the height of your robot.
+max_obstacle_height: 2.0
+
+# The default maximum distance from the robot at which an obstacle will be
+# inserted into the cost map in meters. This can be over-ridden on a per-sensor basis.
+obstacle_range: 2.5
+
+# The default range in meters at which to raytrace out obstacles from the map
+# using sensor data. This can be over-ridden on a per-sensor basis.
+raytrace_range: 3.0
+
+
+### Global costmap parameters - load with the namespace "global_costmap" in the launch file ###
+
+# The global frame for the global costmap to operate in.
+global_frame: map
+
+# The name of the frame for the base link of the robot.
+robot_base_frame: base_link
+
+rolling_window: true
+track_unknown_space: true
+
+plugins:
+  # - {name: obstacles,                 type: "costmap_2d::ObstacleLayer"}
+  - {name: static_map,                type: "costmap_2d::StaticLayer"}
+  - {name: inflation,                 type: "costmap_2d::InflationLayer"}

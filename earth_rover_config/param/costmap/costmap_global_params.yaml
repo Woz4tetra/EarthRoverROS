@@ -1,0 +1,15 @@
+### Global costmap parameters - load with the namespace "global_costmap" in the launch file ###
+
+# The global frame for the global costmap to operate in.
+global_frame: map
+
+# The name of the frame for the base link of the robot.
+robot_base_frame: base_link
+
+rolling_window: true
+track_unknown_space: true
+
+plugins:
+  # - {name: obstacles,                 type: "costmap_2d::ObstacleLayer"}
+  - {name: static_map,                type: "costmap_2d::StaticLayer"}
+  - {name: inflation,                 type: "costmap_2d::InflationLayer"}
