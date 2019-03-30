@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-        <rosparam file="$(find earth_rover_config)/param/costmap/move_base_global_params.yaml" command="load"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/move_base_common_params.yaml" command="load"/>
 
-        <rosparam file="$(find earth_rover_config)/param/costmap/dwaplanner_params.yaml" command="load" ns="DWAPlanner"/>
-        <rosparam file="$(find earth_rover_config)/param/costmap/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
+        <!-- <param name="base_local_planner" value="base_local_planner/DWAPlannerROS"/> -->
+        <!-- <rosparam file="$(find earth_rover_config)/param/move_base/dwaplanner_params.yaml" command="load" ns="DWAPlanner"/> -->
+        <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/trajectory_planner_params.yaml" command="load" ns="TrajectoryPlannerROS"/>
 
-        <rosparam file="$(find earth_rover_config)/param/costmap/costmap_common_params.yaml" command="load" ns="local_costmap"/>
-        <rosparam file="$(find earth_rover_config)/param/costmap/costmap_local_params.yaml" command="load" ns="local_costmap"/>
-        
-        <rosparam file="$(find earth_rover_config)/param/costmap/costmap_common_params.yaml" command="load" ns="global_costmap"/>
-        <rosparam file="$(find earth_rover_config)/param/costmap/costmap_global_params.yaml" command="load" ns="global_costmap"/>
+        <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner"/> -->
+        <!-- <rosparam file="$(find earth_rover_config)/param/move_base/global_planner_params.yaml" command="load" ns="GlobalPlanner"/> -->
+        <param name="base_global_planner" value="navfn/NavfnROS"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/navfn_planner_params.yaml" command="load" ns="NavfnROS"/>
+
+        <rosparam file="$(find earth_rover_config)/param/move_base/costmap_common_params.yaml" command="load" ns="local_costmap"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/costmap_local_params.yaml" command="load" ns="local_costmap"/>
+
+        <rosparam file="$(find earth_rover_config)/param/move_base/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/costmap_global_params.yaml" command="load" ns="global_costmap"/>
+
+        <remap from="/cmd_vel" to="/earth_rover/cmd_vel"/>
+        <remap from="/odom" to="/earth_rover/odom"/>
     </node>
 </launch>

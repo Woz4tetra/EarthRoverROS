@@ -6,7 +6,7 @@ global_frame: map
 # The name of the frame for the base link of the robot.
 robot_base_frame: base_link
 
-rolling_window: true
+rolling_window: false  # true
 track_unknown_space: true
 
 plugins:

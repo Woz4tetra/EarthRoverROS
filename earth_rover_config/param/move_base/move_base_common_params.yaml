@@ -1,6 +1,7 @@
 
-base_global_planner: "global_planner/GlobalPlanner" # alternatives: navfn/NavfnROS, global_planner/GlobalPlanner, carrot_planner/CarrotPlanner
-base_local_planner: "dwa_local_planner/DWAPlannerROS"
+# base_global_planner: "global_planner/GlobalPlanner" # alternatives: navfn/NavfnROS, global_planner/GlobalPlanner, carrot_planner/CarrotPlanner
+# base_local_planner: "base_local_planner/TrajectoryPlannerROS"  # alternatives: dwa_local_planner/DWAPlannerROS
+
 # recovery_behaviors:
 #   - name: 'super_conservative_reset1'
 #     type: 'clear_costmap_recovery/ClearCostmapRecovery'
@@ -18,7 +19,7 @@ base_local_planner: "dwa_local_planner/DWAPlannerROS"
 #     type: 'clear_costmap_recovery/ClearCostmapRecovery'
 #   - name: 'clearing_rotation2'
 #     type: 'rotate_recovery/RotateRecovery'
-
+#
 # super_conservative_reset1:
 #   reset_distance: 3.0
 # conservative_reset1:
@@ -34,7 +35,7 @@ base_local_planner: "dwa_local_planner/DWAPlannerROS"
 
 # The rate in Hz at which to run the control loop and send velocity commands
 # to the base.
-controller_frequency: 20.0
+controller_frequency: 8.0  # 20.0
 
 # How long the planner will wait in seconds in an attempt to find a valid plan
 # before space-clearing operations are performed.
@@ -52,13 +53,13 @@ conservative_reset_dist: 3.0
 
 # Whether or not to enable the move_base recovery behaviors to attempt to
 # clear out space.
-recovery_behavior_enabled: true
+recovery_behavior_enabled: false  # true
 
 # Determines whether or not the robot will attempt an in-place rotation when
 # attempting to clear out space. Note: This parameter is only used when the
 # default recovery behaviors are in use, meaning the user has not set the
 # recovery_behaviors parameter to anything custom.
-clearing_rotation_allowed: true
+clearing_rotation_allowed: false  # true
 
 # Determines whether or not to shutdown the costmaps of the node when
 # move_base is in an inactive state
