@@ -8,10 +8,10 @@
         <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
         <rosparam file="$(find earth_rover_config)/param/move_base/trajectory_planner_params.yaml" command="load" ns="TrajectoryPlannerROS"/>
 
-        <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner"/> -->
-        <!-- <rosparam file="$(find earth_rover_config)/param/move_base/global_planner_params.yaml" command="load" ns="GlobalPlanner"/> -->
-        <param name="base_global_planner" value="navfn/NavfnROS"/>
-        <rosparam file="$(find earth_rover_config)/param/move_base/navfn_planner_params.yaml" command="load" ns="NavfnROS"/>
+        <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+        <rosparam file="$(find earth_rover_config)/param/move_base/global_planner_params.yaml" command="load" ns="GlobalPlanner"/>
+        <!-- <param name="base_global_planner" value="navfn/NavfnROS"/> -->
+        <!-- <rosparam file="$(find earth_rover_config)/param/move_base/navfn_planner_params.yaml" command="load" ns="NavfnROS"/> -->
 
         <rosparam file="$(find earth_rover_config)/param/move_base/costmap_common_params.yaml" command="load" ns="local_costmap"/>
         <rosparam file="$(find earth_rover_config)/param/move_base/costmap_local_params.yaml" command="load" ns="local_costmap"/>

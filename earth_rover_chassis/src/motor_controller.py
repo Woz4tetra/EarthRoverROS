@@ -6,7 +6,7 @@ class MotorInfo:
                  speed_smooth_k,
                  wheel_radius_meters, ticks_per_rotation,
                  min_speed_meters_per_s, max_speed_meters_per_s,
-                 min_command, max_command, output_deadzone):
+                 min_command, max_command, output_deadzone, output_noise):
         self.name = name
         self.kp = kp
         self.ki = ki
@@ -19,6 +19,7 @@ class MotorInfo:
         self.min_command = min_command
         self.max_command = max_command
         self.output_deadzone = output_deadzone
+        self.output_noise = output_noise
 
 class MotorController:
     def __init__(self, motor_info):
@@ -103,7 +104,11 @@ class MotorController:
         # self.compute_speed(dt)
         # output = self.open_loop_setpoint
 
-        if abs(output) < self.info.output_deadzone:
+        if abs(output) < self.info.output_noise:
             output = 0.0
+
+        if abs(output) < self.info.output_deadzone and output != 0.0:
+            # assign output the minimum speed with direction sign applied
+            output = math.copysign(self.info.output_deadzone, output)
 
         return output

@@ -35,7 +35,7 @@
             ymin: -15.0
             xmax: 15.0
             ymax: 15.0
-            # delta: 0.025
+            delta: 0.025
 
             # All default
             # sigma: 0.01

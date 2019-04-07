@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <arg name="map_name" value="map" />
+    <arg name="map_name" value="map_2" />
     <arg name="map_path" value="$(find earth_rover_config)/maps/$(arg map_name)" />
 
     <node name="map_server" pkg="map_server" type="map_saver" output="screen" args="-f $(arg map_path)"/>

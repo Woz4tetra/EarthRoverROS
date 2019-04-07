@@ -32,6 +32,10 @@ class EarthRoverChassis:
         self.right_min_speed_meters_per_s = rospy.get_param("~right_min_speed_meters_per_s", -1.0)
         self.right_max_speed_meters_per_s = rospy.get_param("~right_max_speed_meters_per_s", 1.0)
 
+        # cmd_vel parameters
+        # self.min_cmd_lin_vel = rospy.get_param("~min_cmd_lin_vel", 0.0)
+        # self.min_cmd_ang_vel = rospy.get_param("~min_cmd_lin_vel", 0.0)
+
         # PID parameters
         self.enable_pid = rospy.get_param("~enable_pid", True)
         self.min_command = rospy.get_param("~min_command", -1.0)
@@ -40,7 +44,8 @@ class EarthRoverChassis:
         self.ki = rospy.get_param("~ki", 0.0)
         self.kd = rospy.get_param("~kd", 0.0)
         self.speed_smooth_k = rospy.get_param("~speed_smooth_k", 1.0)
-        self.output_deadzone = rospy.get_param("~output_deadzone", 0.01)
+        self.output_deadzone = rospy.get_param("~output_deadzone", 0.1)
+        self.output_noise = rospy.get_param("~output_noise", 0.05)
 
         # TF parameters
         self.child_frame = rospy.get_param("~odom_child_frame", "base_link")
@@ -69,7 +74,7 @@ class EarthRoverChassis:
             self.kp, self.ki, self.kd, self.speed_smooth_k,
             self.wheel_radius, self.ticks_per_rotation,
             self.left_min_speed_meters_per_s, self.left_max_speed_meters_per_s,
-            self.min_command, self.max_command, self.output_deadzone
+            self.min_command, self.max_command, self.output_deadzone, self.output_noise
         )
 
         right_motor_info = MotorInfo(
@@ -77,7 +82,7 @@ class EarthRoverChassis:
             self.kp, self.ki, self.kd, self.speed_smooth_k,
             self.wheel_radius, self.ticks_per_rotation,
             self.right_min_speed_meters_per_s, self.right_max_speed_meters_per_s,
-            self.min_command, self.max_command, self.output_deadzone
+            self.min_command, self.max_command, self.output_deadzone, self.output_noise
         )
 
         self.left_motor = MotorController(left_motor_info)
@@ -165,6 +170,13 @@ class EarthRoverChassis:
     def twist_callback(self, twist_msg):
         self.linear_speed_mps = twist_msg.linear.x  # m/s
         angular_speed_radps = twist_msg.angular.z  # rad/s
+
+        # if abs(self.linear_speed_mps) < self.min_cmd_lin_vel and self.linear_speed_mps != 0.0:
+        #     # assign linear_speed_mps the minimum speed with direction sign applied
+        #     self.linear_speed_mps = math.copysign(self.min_cmd_lin_vel, self.linear_speed_mps)
+
+        # if abs(angular_speed_radps) < self.min_cmd_ang_vel and angular_speed_radps != 0.0:
+        #     angular_speed_radps = math.copysign(self.min_cmd_ang_vel, angular_speed_radps)
 
         # arc = angle * radius
         # rotation speed at the wheels

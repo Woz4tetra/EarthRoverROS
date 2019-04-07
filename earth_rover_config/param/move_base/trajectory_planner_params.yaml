@@ -16,7 +16,7 @@ acc_lim_y: 0.0  # 2.5
 acc_lim_theta: 2.0  # 3.2
 
 # The maximum x velocity for the robot in m/s.
-max_vel_x: 0.55  # 0.55
+max_vel_x: 0.3  #0.55  # 0.55
 
 # The minimum forward velocity allowed for the base in meters/sec
 min_vel_x: 0.15  # 0.1
@@ -29,7 +29,7 @@ min_vel_theta: -1.5  # -1.0
 
 # The minimum rotational velocity allowed for the base while performing
 # in-place rotations in radians/sec
-min_in_place_vel_theta: 0.65
+min_in_place_vel_theta: 1.0
 
 # Speed used for driving during escapes in meters/sec.
 # Note that it must be negative in order for the robot to actually reverse.
@@ -49,30 +49,30 @@ holonomic_robot: false
 yaw_goal_tolerance: 0.05  # 0.05
 
 # The tolerance in meters for the controller in the x & y distance when achieving a goal
-xy_goal_tolerance: 0.05  # 0.1
+xy_goal_tolerance: 0.1  # 0.1
 
 # If goal tolerance is latched, if the robot ever reaches the goal xy location
 # it will simply rotate in place, even if it ends up outside the goal
 # tolerance while it is doing so.
-latch_xy_goal_tolerance: false
+latch_xy_goal_tolerance: false  # false
 
 
 ## Forward Simulation Parameters ##
 
 # The amount of time to forward-simulate trajectories in seconds
-sim_time: 4.0  # 0.7
+sim_time: 3.0  # 0.7
 
 # The step size, in meters, to take between points on a given trajectory
-sim_granularity: 0.025
+sim_granularity: 0.025  # 0.025
 
 # The step size, in radians, to take between angular samples on a given trajectory.
-angular_sim_granularity: 0.025
+angular_sim_granularity: 0.025  # 0.025
 
 # The number of samples to use when exploring the x velocity space
-vx_samples: 3
+vx_samples: 20  # 3
 
 # The number of samples to use when exploring the theta velocity space
-vtheta_samples: 20
+vtheta_samples: 40  # 20
 
 # The frequency at which this controller will be called in Hz.
 # Overrides move_base's global controller_frequency parameter if set
@@ -93,23 +93,23 @@ meter_scoring: false
 
 # The weighting for how much the controller should stay close to the path it
 # was given, maximal possible value is 5.0
-pdist_scale: 0.6 #4.5  # 0.6
+pdist_scale: 5.0  # 0.6
 
 # The weighting for how much the controller should attempt to reach its local
 # goal, also controls speed, maximal possible value is 5.0
-gdist_scale: 0.8 #0.5  # 0.8
+gdist_scale: 3.0 #0.5  # 0.8
 
 # The weighting for how much the controller should attempt to avoid obstacles
-occdist_scale: 0.01
+occdist_scale: 0.5  # 0.01
 
 # How far to look ahead in meters when scoring different in-place-rotation trajectories
-heading_lookahead: 0.325
+heading_lookahead: 0.1 # 0.325
 
 # Whether to score based on the robot's heading to the path or its distance from the path
-heading_scoring: false
+heading_scoring: true  # false
 
 # How far to look ahead in time in seconds along the simulated trajectory when using heading scoring
-heading_scoring_timestep: 0.8
+heading_scoring_timestep: 3.0  # 0.8
 
 # Whether to use the Dynamic Window Approach (DWA) or whether to use Trajectory Rollout
 dwa: true

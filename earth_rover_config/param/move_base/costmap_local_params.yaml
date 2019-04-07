@@ -8,6 +8,9 @@ robot_base_frame: base_link
 
 rolling_window: true
 
+width: 3  # 10
+height: 3  # 10
+
 plugins:
     # parameters defined in costmap commmon parameters file
     # - {name: static_map,       type: "costmap_2d::StaticLayer"}

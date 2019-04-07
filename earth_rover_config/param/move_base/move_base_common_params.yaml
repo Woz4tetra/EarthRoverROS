@@ -63,7 +63,7 @@ clearing_rotation_allowed: false  # true
 
 # Determines whether or not to shutdown the costmaps of the node when
 # move_base is in an inactive state
-shutdown_costmaps: false
+shutdown_costmaps: true  # false
 
 # How long in seconds to allow for oscillation before executing recovery
 # behaviors. A value of 0.0 corresponds to an infinite timeout.
@@ -76,7 +76,7 @@ oscillation_distance: 0.5
 # The rate in Hz at which to run the global planning loop. If the frequency is
 # set to 0.0, the global planner will only run when a new goal is received or
 # the local planner reports that its path is blocked.
-planner_frequency: 0.0
+planner_frequency: 0.0  # 0.0
 
 
 # How many times to allow for planning retries before executing recovery

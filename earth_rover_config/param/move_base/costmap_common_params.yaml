@@ -1,21 +1,21 @@
 ### Common costmap parameters ###
 
-# footprint: [
-#     [-0.500663781, -0.186784927],
-#     [-0.0842645, -0.186784927],
-#     [-0.0842645, -0.250748756],
-#     [0.1342645, -0.250748756],
-#     [0.1342645, -0.153217622],
-#     [0.1960908, -0.153217622],
-#     [0.1960908, 0.153217622],
-#     [0.1342645, 0.153217622],
-#     [0.1342645, 0.250748756],
-#     [-0.0842645, 0.250748756],
-#     [-0.0842645, 0.186784927],
-#     [-0.500663781, 0.186784927]
-# ]
+footprint: [
+    [-0.500663781, -0.186784927],
+    [-0.0842645, -0.186784927],
+    [-0.0842645, -0.250748756],
+    [0.1342645, -0.250748756],
+    [0.1342645, -0.153217622],
+    [0.1960908, -0.153217622],
+    [0.1960908, 0.153217622],
+    [0.1342645, 0.153217622],
+    [0.1342645, 0.250748756],
+    [-0.0842645, 0.250748756],
+    [-0.0842645, 0.186784927],
+    [-0.500663781, 0.186784927]
+]
 
-robot_radius: 0.1
+# robot_radius: 0.1
 
 # Specifies the delay in transform (tf) data that is tolerable in seconds.
 # This parameter serves as a safeguard to losing a link in the tf tree while
@@ -48,14 +48,14 @@ static:
 # inflation namespace. Defined in global and local costmap "plugins" dictionaries
 inflation:
     enabled:              true
-    cost_scaling_factor:  2.58
-    inflation_radius:     0.15
+    cost_scaling_factor:  10 #2.58  # 10
+    inflation_radius:     0.15  # 0.55
 
 # obstacles namespace. Defined in global and local costmap "plugins" dictionaries
 obstacles:
     observation_sources: base_scan
     base_scan:
-        topic: /rplidar/scan
+        topic: /rplidar/scan_filtered
         sensor_frame: /laser
         # observation_persistence: 0.0
         # expected_update_rate: 0.0

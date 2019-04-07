@@ -2,7 +2,7 @@
 <launch>
     <arg name="create_map" value="false" />
     <!-- <arg name="create_map" value="true" /> -->
-    <arg name="map_name" value="map" />
+    <arg name="map_name" value="map_2" />
 
     <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch">
         <arg name="led_control_left_start_command"   value="w" />
@@ -27,7 +27,10 @@
     <!-- <include file="$(find earth_rover_config)/launch/zed.launch"></include> -->
     <include file="$(find earth_rover_config)/launch/rplidar.launch"></include>
     <include if="$(arg create_map)" file="$(find earth_rover_config)/launch/gmapping_map_maker.launch"></include>
-    <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch"></include>
+    <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/amcl_localization.launch">
+        <arg name="map_name" value="$(arg map_name)" />
+    </include>
+    <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/lidar_filter.launch"></include>
     <include unless="$(arg create_map)" file="$(find earth_rover_config)/launch/move_base.launch"></include>
 
     <!-- <include file="$(find earth_rover_config)/launch/rtabmap_localization.launch"></include> -->

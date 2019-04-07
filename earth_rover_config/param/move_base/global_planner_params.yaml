@@ -8,7 +8,7 @@
 allow_unknown: true
 
 # A tolerance on the goal point for the planner.
-default_tolerance: 0.0
+default_tolerance: 0.2  # 0.0
 
 # Specifies whether or not to visualize the potential area computed via a PointCloud2.
 visualize_potential: false
@@ -26,20 +26,20 @@ use_grid_path: false
 old_navfn_behavior: false
 
 # Lethal Cost (dynamic reconfigure)
-lethal_cost: 253
+lethal_cost: 200  # 253
 
 # Neutral Cost (dynamic reconfigure)
-neutral_cost: 50
+neutral_cost: 50  # 50
 
 # Factor to multiply each cost from costmap by (dynamic reconfigure)
-cost_factor: 3.0
+cost_factor: 0.8  # 3.0
 
 # Publish Potential Costmap (dynamic reconfigure)
 publish_potential: true
 
 # How to set the orientation of each point
 # (None=0, Forward=1, Interpolate=2, ForwardThenInterpolate=3, Backward=4, Leftward=5, Rightward=6) (dynamic reconfigure)
-orientation_mode: 0
+orientation_mode: 2  # 0
 
 # What window to use to determine the orientation based on the position
 # derivative specified by the orientation mode (dynamic reconfigure)

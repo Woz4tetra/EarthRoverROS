@@ -28,7 +28,7 @@ class EarthRoverTeleop:
         self.cancel_goal_msg = GoalID()
         self.current_pattern_index = 0
         self.light_patterns = ["w", "rs", "rf"]
-        self.lights_are_on = True
+        self.lights_are_on = False
 
         # button mapping:
         # 0: A,    1: B,     2: X,      3: Y
@@ -109,17 +109,15 @@ class EarthRoverTeleop:
         # 8: Home, 9: L joy, 10: R joy
         if self.did_button_change(msg, self.buttons["A"]):  # toggle lights
             self.lights_are_on = not self.lights_are_on
-            if self.lights_are_on:
-                self.set_led_pattern()
-            else:
-                self.control_leds("o")
+            self.set_led_pattern()
 
         elif self.did_button_change(msg, self.buttons["B"]):  # switch light pattern
             if self.lights_are_on:
                 self.set_next_pattern()
-                self.set_led_pattern()
+            self.set_led_pattern()
 
         elif self.did_button_change(msg, self.buttons["R1"]):
+            self.cancel_goal()
             self.is_e_stopped = not self.is_e_stopped
             self.e_stop_lock_msg.data = self.is_e_stopped
             if self.is_e_stopped:
@@ -128,9 +126,7 @@ class EarthRoverTeleop:
                 rospy.loginfo("Joystick E stop was released")
 
         elif self.did_button_change(msg, self.buttons["L1"]):
-            if self.enable_move_base_hookups:
-                self.cancel_goal_pub.publish(self.cancel_goal_msg)
-                print "Canceling goal from joystick button press"
+            self.cancel_goal()
 
         linear_val = self.linear_scale * msg.axes[int(self.linear_axis)]
         angular_val = self.angular_scale * msg.axes[int(self.angular_axis)]
@@ -146,8 +142,16 @@ class EarthRoverTeleop:
 
         self.prev_joy_msg = msg
 
+    def cancel_goal(self):
+        if self.enable_move_base_hookups:
+            self.cancel_goal_pub.publish(self.cancel_goal_msg)
+            print "Canceling goal from joystick button press"
+
     def set_led_pattern(self):
-        self.control_leds(self.light_patterns[self.current_pattern_index])
+        if self.lights_are_on:
+            self.control_leds(self.light_patterns[self.current_pattern_index])
+        else:
+            self.control_leds("o")
 
     def set_next_pattern(self):
         self.current_pattern_index += 1
