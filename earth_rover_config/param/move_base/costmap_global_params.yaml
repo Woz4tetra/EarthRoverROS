@@ -7,7 +7,7 @@ global_frame: map
 robot_base_frame: base_link
 
 rolling_window: false  # true
-track_unknown_space: true
+# track_unknown_space: true
 
 plugins:
   # - {name: obstacles,                 type: "costmap_2d::ObstacleLayer"}

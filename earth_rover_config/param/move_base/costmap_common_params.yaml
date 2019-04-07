@@ -1,19 +1,21 @@
 ### Common costmap parameters ###
 
-footprint: [
-    [-0.500663781, -0.186784927],
-    [-0.0842645, -0.186784927],
-    [-0.0842645, -0.250748756],
-    [0.1342645, -0.250748756],
-    [0.1342645, -0.153217622],
-    [0.1960908, -0.153217622],
-    [0.1960908, 0.153217622],
-    [0.1342645, 0.153217622],
-    [0.1342645, 0.250748756],
-    [-0.0842645, 0.250748756],
-    [-0.0842645, 0.186784927],
-    [-0.500663781, 0.186784927]
-]
+# footprint: [
+#     [-0.500663781, -0.186784927],
+#     [-0.0842645, -0.186784927],
+#     [-0.0842645, -0.250748756],
+#     [0.1342645, -0.250748756],
+#     [0.1342645, -0.153217622],
+#     [0.1960908, -0.153217622],
+#     [0.1960908, 0.153217622],
+#     [0.1342645, 0.153217622],
+#     [0.1342645, 0.250748756],
+#     [-0.0842645, 0.250748756],
+#     [-0.0842645, 0.186784927],
+#     [-0.500663781, 0.186784927]
+# ]
+
+robot_radius: 0.1
 
 # Specifies the delay in transform (tf) data that is tolerable in seconds.
 # This parameter serves as a safeguard to losing a link in the tf tree while
@@ -30,6 +32,7 @@ publish_frequency: 1.0
 # Whether or not to use a rolling window version of the costmap. If the
 # static_map parameter is set to true, this parameter must be set to false.
 rolling_window: false
+
 
 # If true the full costmap is published to "~<name>/costmap" every update.
 # If false only the part of the costmap that has changed is published on the

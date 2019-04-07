@@ -15,6 +15,17 @@ plugins:
     # - {name: obstacles,        type: "costmap_2d::VoxelLayer"}
     - {name: inflation,        type: "costmap_2d::InflationLayer"}
 
+# If false, each pixel has one of 2 states: lethal obstacle or free.
+# If true, each pixel has one of 3 states: lethal obstacle, free, or unknown
+track_unknown_space: false  # false
+
+# If true, the robot footprint will clear (mark as free) the space in which it travels.
+footprint_clearing_enabled: true  # true
+
+# Changes the behaviour how the obstacle_layer handles incoming data from layers
+# beyond it. Possible values are "Overwrite" (0), "Maximum" (1) and "Nothing" (99). "
+combination_method: 1  # 1
+
 # The maximum height of any obstacle to be inserted into the costmap in meters.
 # This parameter should be set to be slightly higher than the height of your robot.
 max_obstacle_height: 2.0
