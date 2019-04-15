@@ -9,7 +9,8 @@
 
     <node name="joystick" pkg="joy" type="joy_node" output="screen" required="true">
         <param name="dev" value="/dev/input/js0" type="str"/>
-        <param name="deadzone" value="0.12" />
+        <!-- <param name="deadzone" value="0.12" /> -->
+        <param name="deadzone" value="0.0" />
     </node>
 
     <group ns="earth_rover" >

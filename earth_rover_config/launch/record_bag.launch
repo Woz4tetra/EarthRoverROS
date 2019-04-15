@@ -1,13 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <arg name="joystick_linear_scale"   value="0.65" />
-    <arg name="joystick_angular_scale"   value="2.0" />
+    <arg name="create_map" value="false" />
+    <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch">
+        <arg name="led_control_left_start_command"   value="w" />
+        <arg name="led_control_right_start_command"   value="w" />
 
-    <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch"></include>
-    <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch"></include>
+        <!-- <arg name="led_control_left_start_command"   value="-" />
+        <arg name="led_control_right_start_command"   value="-" /> -->
+    </include>
 
-    <include file="$(find earth_rover_config)/launch/sensors.launch"></include>
+    <include file="$(find earth_rover_teensy_bridge)/launch/earth_rover_teensy_bridge.launch"/>
 
-    <node pkg="rosbag" type="record" name="rosbag_record_cam"
-       args="record -o $(find earth_rover_config)/bags/bag   /zed/point_cloud/cloud_registered   lo /rplidar/scan   /earth_rover/left   /earth_rover/right   "/>
+    <include file="$(find earth_rover_teleop)/launch/earth_rover_teleop.launch">
+        <arg name="joystick_linear_scale"   value="0.55" />
+        <!-- <arg name="joystick_linear_scale"   value="0.15" /> -->
+        <!-- <arg name="joystick_angular_scale"   value="1.6" /> -->
+        <arg name="joystick_angular_scale"   value="0.15" />
+        <arg name="twist_publish_topic_name"   value="cmd_vel_joy_input" />
+        <arg name="enable_move_base_hookups"   value="$(eval not arg('create_map'))" />
+    </include>
+
+    <include file="$(find earth_rover_config)/launch/chassis_mux.launch"></include>
+    <!-- <include file="$(find earth_rover_config)/launch/zed.launch"></include> -->
+    <include file="$(find earth_rover_config)/launch/rplidar.launch"></include>
+
+    <!-- <node pkg="rosbag" type="record" name="rosbag_record_cam"
+       args="record -o $(find earth_rover_config)/bags/bag  /rplidar/scan   /earth_rover    /joy   "/> -->
 </launch>

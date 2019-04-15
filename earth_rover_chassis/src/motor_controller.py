@@ -5,8 +5,8 @@ class MotorInfo:
     def __init__(self, name, kp, ki, kd,
                  speed_smooth_k,
                  wheel_radius_meters, ticks_per_rotation,
-                 min_speed_meters_per_s, max_speed_meters_per_s,
-                 min_command, max_command, output_deadzone, output_noise):
+                 min_usable_command, min_speed_mps, max_speed_mps,
+                 min_command, max_command, output_noise, min_measurable_speed):
         self.name = name
         self.kp = kp
         self.ki = ki
@@ -14,12 +14,13 @@ class MotorInfo:
         self.speed_smooth_k = speed_smooth_k
         self.wheel_radius = wheel_radius_meters
         self.ticks_per_rotation = ticks_per_rotation
-        self.min_speed_meters_per_s = min_speed_meters_per_s
-        self.max_speed_meters_per_s = max_speed_meters_per_s
+        self.min_usable_command = min_usable_command
+        self.min_speed_mps = min_speed_mps
+        self.max_speed_mps = max_speed_mps
         self.min_command = min_command
         self.max_command = max_command
-        self.output_deadzone = output_deadzone
         self.output_noise = output_noise
+        self.min_measurable_speed = min_measurable_speed
 
 class MotorController:
     def __init__(self, motor_info):
@@ -41,10 +42,10 @@ class MotorController:
 
         self.pid = PID.init_with_constants(self.info.kp, self.info.ki, self.info.kd)
 
+        self.slope = (self.info.max_command - self.info.min_command) / (self.info.max_speed_mps - self.info.min_speed_mps)
+
     def convert_speed_to_command(self, speed_mps):
-        slope = (self.info.max_command - self.info.min_command) / (self.info.max_speed_meters_per_s - self.info.min_speed_meters_per_s)
-        command = slope * (speed_mps - self.info.min_speed_meters_per_s) + self.info.min_command
-        return command
+        return self.slope * (speed_mps - self.info.min_speed_mps) + self.info.min_command
 
     def set_target(self, setpoint_mps):
         self.setpoint_mps = setpoint_mps
@@ -64,12 +65,15 @@ class MotorController:
         error = self.current_speed - self.smooth_speed
         self.smooth_speed += self.info.speed_smooth_k * error
 
+        if abs(self.smooth_speed) < self.info.min_measurable_speed:
+            self.smooth_speed = 0.0
+
         # print self.info.name, dt, self.delta_dist / self.ticks_to_meters, self.smooth_speed, self.current_speed
         return self.smooth_speed
 
     def get_speed(self):
-        # return self.smooth_speed
-        return self.current_speed
+        return self.smooth_speed
+        # return self.current_speed
 
     def get_dist(self):
         return self.current_distance
@@ -95,7 +99,7 @@ class MotorController:
 
     def update(self, dt):
         if dt == 0.0:
-            return 0.0
+            return None
 
         speed = self.compute_speed(dt)
         error = self.setpoint_mps - speed
@@ -107,8 +111,8 @@ class MotorController:
         if abs(output) < self.info.output_noise:
             output = 0.0
 
-        if abs(output) < self.info.output_deadzone and output != 0.0:
+        if abs(output) < self.info.min_usable_command and output != 0.0:
             # assign output the minimum speed with direction sign applied
-            output = math.copysign(self.info.output_deadzone, output)
+            output = math.copysign(self.info.min_usable_command, output)
 
         return output

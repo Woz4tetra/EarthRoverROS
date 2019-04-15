@@ -32,6 +32,11 @@ class EarthRoverChassis:
         self.right_min_speed_meters_per_s = rospy.get_param("~right_min_speed_meters_per_s", -1.0)
         self.right_max_speed_meters_per_s = rospy.get_param("~right_max_speed_meters_per_s", 1.0)
 
+        self.left_min_usable_command = rospy.get_param("~left_min_usable_command", 0.10)
+        self.right_min_usable_command = rospy.get_param("~right_min_usable_command", 0.10)
+
+        self.min_measurable_speed = rospy.get_param("~min_measurable_speed", 0.0001)
+
         # cmd_vel parameters
         # self.min_cmd_lin_vel = rospy.get_param("~min_cmd_lin_vel", 0.0)
         # self.min_cmd_ang_vel = rospy.get_param("~min_cmd_lin_vel", 0.0)
@@ -44,8 +49,8 @@ class EarthRoverChassis:
         self.ki = rospy.get_param("~ki", 0.0)
         self.kd = rospy.get_param("~kd", 0.0)
         self.speed_smooth_k = rospy.get_param("~speed_smooth_k", 1.0)
-        self.output_deadzone = rospy.get_param("~output_deadzone", 0.1)
-        self.output_noise = rospy.get_param("~output_noise", 0.05)
+        # self.output_deadzone = rospy.get_param("~output_deadzone", 0.1)
+        self.output_noise = rospy.get_param("~output_noise", 0.01)
 
         # TF parameters
         self.child_frame = rospy.get_param("~odom_child_frame", "base_link")
@@ -73,16 +78,20 @@ class EarthRoverChassis:
             "left motor",
             self.kp, self.ki, self.kd, self.speed_smooth_k,
             self.wheel_radius, self.ticks_per_rotation,
+            self.left_min_usable_command,
             self.left_min_speed_meters_per_s, self.left_max_speed_meters_per_s,
-            self.min_command, self.max_command, self.output_deadzone, self.output_noise
+            self.min_command, self.max_command,
+            self.output_noise, self.min_measurable_speed
         )
 
         right_motor_info = MotorInfo(
             "right motor",
             self.kp, self.ki, self.kd, self.speed_smooth_k,
             self.wheel_radius, self.ticks_per_rotation,
+            self.right_min_usable_command,
             self.right_min_speed_meters_per_s, self.right_max_speed_meters_per_s,
-            self.min_command, self.max_command, self.output_deadzone, self.output_noise
+            self.min_command, self.max_command,
+            self.output_noise, self.min_measurable_speed
         )
 
         self.left_motor = MotorController(left_motor_info)
@@ -187,14 +196,16 @@ class EarthRoverChassis:
 
         dt = self.left_motor.get_dt(rospy.Time.now())
         left_output = self.left_motor.update(dt)
-        self.command_left_motor(left_output)
+        if left_output is not None:
+            self.command_left_motor(left_output)
 
     def right_encoder_callback(self, enc_msg):
         self.right_motor.enc_tick = enc_msg.data
 
         dt = self.right_motor.get_dt(rospy.Time.now())
         right_output = self.right_motor.update(dt)
-        self.command_right_motor(right_output)
+        if right_output is not None:
+            self.command_right_motor(right_output)
 
     def ultrasonic_callback(self, ultrasonic_msg):
         for index, distance in enumerate(ultrasonic_msg.data):

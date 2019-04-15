@@ -2,7 +2,7 @@
 <launch>
     <arg name="create_map" value="false" />
     <!-- <arg name="create_map" value="true" /> -->
-    <arg name="map_name" value="map_2" />
+    <arg name="map_name" value="map_3" />
 
     <include file="$(find earth_rover_chassis)/launch/earth_rover_chassis.launch">
         <arg name="led_control_left_start_command"   value="w" />
